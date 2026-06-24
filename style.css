@@ -1,0 +1,674 @@
+/* ==========================================
+   🧱 全域基礎樣式
+   ========================================== */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f3f8;
+    color: #333;
+    padding: 20px;
+    margin: 0;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: white;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    position: relative;
+    box-sizing: border-box;
+}
+
+/* ==========================================
+   🎯 分頁顯示與隱藏核心控制
+   ========================================== */
+.app-page {
+    display: none !important;
+    padding-bottom: 75px;
+}
+
+.app-page.active {
+    display: block !important;
+}
+
+.page-title {
+    font-size: 16px;
+    color: #4a5568;
+    margin-bottom: 15px;
+    border-left: 4px solid #2b6cb0;
+    padding-left: 8px;
+}
+
+/* 第一頁的語言大按鈕排列 */
+.lang-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.btn-primary {
+    padding: 12px 24px;
+    background-color: #2b6cb0;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(43, 108, 176, 0.3);
+}
+
+/* 第三頁的情境大按鈕排列 */
+.category-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.category-grid .cat-btn {
+    width: 100%;
+    text-align: left;
+    padding: 15px;
+    font-size: 15px;
+    border-radius: 10px;
+}
+
+/* ==========================================
+   📝 輸入表單與下拉選單
+   ========================================== */
+.input-section {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.input-section h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #495057;
+}
+
+.input-section input,
+.input-section select {
+    display: block;
+    width: 100%;
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    box-sizing: border-box;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 0;
+}
+
+.input-group input {
+    margin: 0;
+    flex: 1;
+}
+
+.search-helper-btn {
+    padding: 10px 12px;
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.search-helper-btn:hover {
+    background-color: #dee2e6;
+    border-color: #b1bbc4;
+}
+
+#addBtn {
+    width: 100%;
+    padding: 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+#addBtn:hover {
+    background-color: #218838;
+}
+
+/* ==========================================
+   🎯 按鈕樣式
+   ========================================== */
+
+/* 1. 語系按鈕與情境按鈕的基礎設定 */
+.lang-btn,
+.cat-btn {
+    white-space: nowrap;
+    padding: 10px 16px;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.lang-btn.active {
+    background: #333;
+    color: white;
+    border-color: #333;
+}
+
+.cat-btn {
+    border-radius: 20px;
+    font-size: 13px;
+    padding: 6px 14px;
+}
+
+.cat-btn.active {
+    background: #e6f4ea;
+    color: #137333;
+    border-color: #137333;
+    font-weight: bold;
+}
+
+/* 2. 練習模式選擇器外層 */
+.mode-selector {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 8px !important;
+    padding: 6px 4px 14px 4px !important;
+    margin-bottom: 15px !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.mode-selector::-webkit-scrollbar {
+    display: none !important;
+}
+
+/* ==========================================
+   🎯 3. 練習模式單個按鈕樣式（圖文分行版）
+   ========================================== */
+.mode-btn {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    white-space: normal !important;
+    padding: 10px 4px !important;
+    /* ⚠️ 修正 [CSS問題1]：移除第二個重複的 font-size 設定，
+       統一只用一個值。圖示用 em 相對單位，文字用 span 獨立控制 */
+    font-size: 20px !important;
+    line-height: 1.4 !important;
+    font-weight: bold !important;
+    border: 1px solid #e2e8f0 !important;
+    background: #edf2f7 !important;
+    color: #4a5568 !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+    display: inline-flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* 按鈕內的文字標籤 */
+.mode-btn span {
+    font-size: 11px !important;
+    display: block !important;
+    margin-top: 4px !important;
+    color: inherit !important;
+    font-weight: bold !important;
+}
+
+.mode-btn:hover {
+    background: #e2e8f0 !important;
+}
+
+.mode-btn.active {
+    background: #007BFF !important;
+    color: white !important;
+    border-color: #007BFF !important;
+}
+
+/* ==========================================
+   🃏 測驗與卡片樣式
+   ========================================== */
+.quiz-box {
+    text-align: center;
+    padding: 20px;
+}
+
+.conjugation-prompt {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #007BFF;
+}
+
+.conjugation-hint {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.play-quiz-btn {
+    font-size: 48px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.option-btn {
+    padding: 15px;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.option-btn:hover {
+    background: #e2e6ea;
+}
+
+/* 填空測試專用 */
+.cloze-trans-prompt {
+    font-size: 20px;
+    font-weight: bold;
+    color: #212529;
+    margin-bottom: 15px;
+}
+
+.cloze-sentence-display {
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: #495057;
+    margin-bottom: 20px;
+    background: #e9ecef;
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.cloze-input-field {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    text-align: center;
+    border: 2px solid #ced4da;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-family: monospace;
+    box-sizing: border-box;
+}
+
+.cloze-input-field:focus {
+    border-color: #007BFF;
+    outline: none;
+}
+
+.submit-answer-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.flashcard {
+    background: #fff;
+    border: 2px solid #e0e0e0;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.audio-btn {
+    background: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    margin-left: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.card-example {
+    font-size: 14px;
+    color: #666;
+    border-top: 1px dashed #ccc;
+    padding-top: 10px;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.memory-card {
+    height: 80px;
+    background: #343a40;
+    color: transparent;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    padding: 5px;
+    user-select: none;
+}
+
+.memory-card.flipped {
+    background: #fff3cd;
+    color: #333;
+    border: 2px solid #ffeeba;
+}
+
+.memory-card.matched {
+    background: #d4edda !important;
+    color: #155724 !important;
+    border: 2px solid #c8e6c9;
+    visibility: hidden;
+}
+
+/* ==========================================
+   📊 即時看板與新聞樣式
+   ========================================== */
+.live-dashboard {
+    margin-top: 25px;
+    padding: 15px;
+    background: #f1f3f9;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 15px;
+    color: #2b6cb0;
+    margin-bottom: 12px;
+}
+
+.dashboard-news h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #4a5568;
+}
+
+/* ⚠️ 修正 [CSS問題2]：移除 padding-left，因為 list-style: none 已移除項目符號，
+   左側縮排沒有意義，會造成多餘空白 */
+.dashboard-news ul {
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #2d3748;
+}
+
+.dashboard-news li {
+    margin-bottom: 6px;
+}
+
+.news-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 5px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.news-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.news-tab {
+    background: none;
+    border: none;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #718096;
+    font-weight: 500;
+    transition: all 0.2s;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex: none;
+}
+
+.news-tab.active {
+    background-color: #3182ce;
+    color: white;
+    font-weight: bold;
+}
+
+/* 新聞列表項目 */
+#newsList li {
+    padding: 10px 12px;
+    border-bottom: 1px solid #edf2f7;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    list-style: none;
+    font-size: 14px;
+}
+
+#newsList li:hover {
+    background-color: #f7fafc;
+    color: #2b6cb0;
+}
+
+/* 彈出視窗背景遮罩 */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 彈出視窗白色主體 */
+.modal-content {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    width: 85%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
+    animation: fadeIn 0.3s ease;
+}
+
+/* 關閉按鈕 */
+.close-modal-btn {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #aaa;
+}
+
+.close-modal-btn:hover {
+    color: #000;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 星座運勢 */
+.horoscope-box {
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    margin-top: 10px;
+}
+
+.astro-select {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e0;
+    background: #fff;
+    color: #4a5568;
+    cursor: pointer;
+}
+
+.horoscope-content {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #2d3748;
+}
+
+.lucky-item {
+    display: inline-block;
+    background-color: #feebc8;
+    color: #c05621;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+/* ==========================================
+   🚨 置底導覽列
+   ========================================== */
+.bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 100% !important;
+    max-width: 600px !important;
+    background: #1e1e1e !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    padding: 0 !important;
+    height: 65px !important;
+    box-sizing: border-box !important;
+    z-index: 99999 !important;
+    border-top: 1px solid #333 !important;
+    border-radius: 16px 16px 0 0;
+}
+
+.nav-item {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    background: none !important;
+    border: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #888888 !important;
+    cursor: pointer !important;
+    font-size: 11px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.nav-item.active {
+    color: #3182ce !important;
+}
+
+.nav-item span {
+    font-size: 20px !important;
+    margin-bottom: 2px !important;
+    display: block !important;
+}
+
+/* 響應式：手機版底部安全留白 */
+@media screen and (max-width: 768px) {
+    .container {
+        padding-bottom: 85px !important;
+    }
+}
+
+/* ==========================================
+   🌐 雙層選單專用容器
+   ========================================== */
+.multi-level-news-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+    border-left: 3px solid #3182ce;
+    padding-left: 10px;
+    margin-top: 5px;
+}
+
+.multi-level-news-controls .news-tabs {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 2px !important;
+}

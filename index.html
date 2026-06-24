@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多語言學習隨身包</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 id="siteTitle" style="text-align: center; margin-top: 0; color: #2b6cb0;">🌍 旅遊多語言隨身包</h2>
+
+        <!-- ===== 第一頁：語系選擇 ===== -->
+        <div id="page1" class="app-page active">
+            <h3 class="page-title">🎯 請選擇你想學習的語言</h3>
+            <div class="lang-grid">
+                <button class="lang-btn active" data-lang="ja">🇯🇵 日文</button>
+                <button class="lang-btn" data-lang="ko">🇰🇷 韓文</button>
+                <button class="lang-btn" data-lang="en">🇺🇸 英文</button>
+                <button class="lang-btn" data-lang="de">🇩🇪 德文</button>
+                <button class="lang-btn" data-lang="fr">🇫🇷 法文</button>
+                <button class="lang-btn" data-lang="es">🇪🇸 西文</button>
+                <button class="lang-btn" data-lang="nan">🇹🇼 台語</button>
+            </div>
+            <div style="text-align: center; margin-top: 30px;">
+                <button id="toPage2Btn" class="btn-primary">選好了，前往練習 ➡️</button>
+            </div>
+        </div>
+
+        <!-- ===== 第二頁：練習模式 ===== -->
+        <div id="page2" class="app-page">
+            <h3 class="page-title">⚡ 請選擇練習模式</h3>
+            <!-- ⚠️ 修正 [HTML問題5]：補上 data-mode 屬性，讓 JS 能正確讀取模式 -->
+            <div class="mode-selector">
+                <button class="mode-btn active" data-mode="dialogue">📇<br><span>字卡認識</span></button>
+                <button class="mode-btn" data-mode="listening">🎧<br><span>聽力測驗</span></button>
+                <button class="mode-btn" data-mode="cloze">⌨️<br><span>拼字填空</span></button>
+                <button class="mode-btn" data-mode="conjugation">✍️<br><span>動詞特訓</span></button>
+                <button class="mode-btn" data-mode="memory">🧠<br><span>翻牌記憶</span></button>
+            </div>
+
+            <div id="mainContent" class="practice-zone"></div>
+        </div>
+
+        <!-- ===== 第三頁：情境分類 ===== -->
+        <div id="page3" class="app-page">
+            <h3 class="page-title">🧳 選擇實用生活情境</h3>
+            <div class="category-grid">
+                <button class="cat-btn active" data-cat="all">🌈 全部顯示</button>
+                <button class="cat-btn" data-cat="hotel">🏨 飯店住宿</button>
+                <button class="cat-btn" data-cat="restaurant">🍴 餐飲美食</button>
+                <button class="cat-btn" data-cat="transport">🚗 交通運輸</button>
+                <button class="cat-btn" data-cat="shopping">🛍️ 購物消費</button>
+            </div>
+            <p style="text-align: center; color: #666; font-size: 14px; margin-top: 20px;">
+                💡 設定後，第二頁的練習內容會自動過濾為該情境。
+            </p>
+        </div>
+
+        <!-- ===== 第四頁：即時看板 ===== -->
+        <!-- ⚠️ 修正 [HTML問題1~4]：移除重複的 page4 巢狀結構，統一為單一正確的 page4 -->
+        <div id="page4" class="app-page">
+            <div class="live-dashboard">
+                <div class="dashboard-header">
+                    <span id="dashboardLocation">📍 東京 即時動態</span>
+                    <span id="dashboardWeather">☀️ 晴天 (Clear) 🌡️ 28°C</span>
+                </div>
+
+                <!-- 通用新聞分類頁籤（日、韓、德、西、台語用） -->
+                <div id="generalNewsTabs" class="news-tabs">
+                    <button class="news-tab active" data-category="international">國際</button>
+                    <button class="news-tab" data-category="finance">財經</button>
+                    <button class="news-tab" data-category="tech">科技</button>
+                    <button class="news-tab" data-category="local">在地</button>
+                    <button class="news-tab" data-category="health">健康</button>
+                </div>
+
+                <!-- 英文雙層選單（英文專用） -->
+                <div id="englishNewsControls" class="multi-level-news-controls" style="display: none;">
+                    <div class="news-tabs" id="englishRegionTabs">
+                        <!-- ⚠️ 修正：data-region 全部改小寫，與 JS 的 toLowerCase() 比對一致 -->
+                        <button class="news-tab active" data-region="us">美國</button>
+                        <button class="news-tab" data-region="ca">加拿大</button>
+                        <button class="news-tab" data-region="au">澳大利亞</button>
+                        <button class="news-tab" data-region="uk">英國</button>
+                        <button class="news-tab" data-region="mt">蒙特婁</button>
+                    </div>
+                    <div class="news-tabs" id="englishTypeTabs">
+                        <button class="news-tab active" data-category="local">在地</button>
+                        <button class="news-tab" data-category="international">國際</button>
+                        <button class="news-tab" data-category="finance">財經</button>
+                        <button class="news-tab" data-category="tech">科技</button>
+                        <button class="news-tab" data-category="health">健康</button>
+                    </div>
+                </div>
+
+                <!-- 法文雙層選單（法文專用） -->
+                <div id="frenchNewsControls" class="multi-level-news-controls" style="display: none;">
+                    <div class="news-tabs" id="frenchRegionTabs">
+                        <!-- ⚠️ 修正：data-region 全部改小寫 -->
+                        <button class="news-tab active" data-region="fr">法國</button>
+                        <button class="news-tab" data-region="ca">加拿大</button>
+                        <button class="news-tab" data-region="qc">魁北克省</button>
+                    </div>
+                    <div class="news-tabs" id="frenchTypeTabs">
+                        <button class="news-tab active" data-category="local">在地</button>
+                        <button class="news-tab" data-category="international">國際</button>
+                        <button class="news-tab" data-category="finance">財經</button>
+                        <button class="news-tab" data-category="tech">科技</button>
+                        <button class="news-tab" data-category="health">健康</button>
+                    </div>
+                </div>
+
+                <!-- 新聞列表與更新按鈕 -->
+                <div class="dashboard-news">
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                        <button id="refreshNewsBtn" class="search-helper-btn"
+                            style="margin: 0; padding: 5px 12px; font-size: 13px;">🔄 更新看板</button>
+                    </div>
+                    <ul id="newsList"></ul>
+                </div>
+
+                <!-- 星座運勢 -->
+                <div class="horoscope-box" style="margin-top: 15px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <div id="astro-title" style="font-weight: bold; font-size: 13px; color: #4a5568;">🔮 今日運勢</div>
+                        <select id="astroSelect" class="astro-select"></select>
+                    </div>
+                    <div id="horoscopeContent" class="horoscope-content">請選取你的星座...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 第五頁：新增詞彙 ===== -->
+        <!-- ⚠️ 修正 [HTML問題3]：page5 從 page4 內部移出，改為正確的同層兄弟元素 -->
+        <div id="page5" class="app-page">
+            <div class="input-section" style="margin-bottom: 0;">
+                <h3>📥 引進專屬個人詞彙/句子</h3>
+
+                <div class="input-group">
+                    <input type="text" id="wordInput" placeholder="外語句子或單字 (例如：お会計をお願いします。)">
+                    <button class="search-helper-btn" id="searchWordBtn">🔍 查對話</button>
+                </div>
+
+                <div class="input-group">
+                    <input type="text" id="transInput" placeholder="中文翻譯 (例如：麻煩請幫我結帳。)">
+                    <button class="search-helper-btn" id="searchTransBtn">🔍 查翻譯</button>
+                </div>
+
+                <input type="text" id="exInput" placeholder="輸入平假名/片假名讀音 (推薦)">
+                <input type="text" id="exTransInput" placeholder="延伸句子/拼音提示 (選填)">
+
+                <select id="categorySelect">
+                    <option value="hotel">🏨 飯店住宿</option>
+                    <option value="restaurant">🍴 餐飲美食</option>
+                    <option value="transport">🚗 交通運輸</option>
+                    <option value="shopping">🛍️ 購物消費</option>
+                </select>
+
+                <button id="addBtn">🎉 儲存並引進新詞彙</button>
+            </div>
+        </div>
+
+        <!-- ===== 新聞彈出視窗 Modal ===== -->
+        <!-- ⚠️ 修正：移到最外層 container 內，不再被任何 page div 包住 -->
+        <div id="newsModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close-modal-btn" onclick="closeNewsModal()">&times;</span>
+                <h3 id="modalTitle">新聞標題</h3>
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+                <p id="modalBody">新聞內容加載中...</p>
+            </div>
+        </div>
+
+        <!-- ===== 置底導覽列 ===== -->
+        <div class="bottom-nav">
+            <button class="nav-item active" onclick="navigateToPage(1)"><span>🌐</span>語系</button>
+            <button class="nav-item" onclick="navigateToPage(2)"><span>⚡</span>練習</button>
+            <button class="nav-item" onclick="navigateToPage(3)"><span>🧳</span>情境</button>
+            <button class="nav-item" onclick="navigateToPage(4)"><span>📰</span>看板</button>
+            <button class="nav-item" onclick="navigateToPage(5)"><span>📥</span>新增</button>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
