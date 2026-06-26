@@ -201,49 +201,62 @@ body {
 }
 
 /* ==========================================
-   🎯 3. 練習模式單個按鈕樣式（圖文分行版）
+   🎯 3. 練習模式單個按鈕樣式（完美視覺優化版）
    ========================================== */
 .mode-btn {
     flex: 1 1 0% !important;
     min-width: 0 !important;
-    white-space: normal !important;
+    white-space: nowrap !important;
+    /* 💡 防止文字斷行變兩行 */
     padding: 10px 4px !important;
-    /* ⚠️ 修正 [CSS問題1]：移除第二個重複的 font-size 設定，
-       統一只用一個值。圖示用 em 相對單位，文字用 span 獨立控制 */
-    font-size: 20px !important;
-    line-height: 1.4 !important;
+
+    /* 💡 修正：將基礎字級降為 13px，確保 4~5 個字的按鈕（如：五十音特訓）能完美並排不塞爆 */
+    font-size: 13px !important;
+    line-height: 1.3 !important;
     font-weight: bold !important;
-    border: 1px solid #e2e8f0 !important;
-    background: #edf2f7 !important;
+
+    background: #f7fafc !important;
     color: #4a5568 !important;
+    border: 1px solid #e2e8f0 !important;
     border-radius: 12px !important;
+
     cursor: pointer !important;
     transition: all 0.2s ease !important;
     box-sizing: border-box !important;
     text-align: center !important;
     display: inline-flex !important;
     flex-direction: column !important;
+    /* 上圖標/Emoji、下文字 */
     align-items: center !important;
     justify-content: center !important;
 }
 
-/* 按鈕內的文字標籤 */
+/* 💡 新增：如果是直接寫在按鈕內開頭的純 Emoji 符號，讓它單獨放大，保持高質感圖標感 */
+.mode-btn::first-letter {
+    font-size: 18px !important;
+    line-height: 1.4 !important;
+}
+
+/* 按鈕內如果有包覆 <span> 的文字標籤 */
 .mode-btn span {
-    font-size: 11px !important;
+    font-size: 12px !important;
     display: block !important;
-    margin-top: 4px !important;
+    margin-top: 2px !important;
     color: inherit !important;
     font-weight: bold !important;
 }
 
+/* 滑鼠游標移過去的效果 */
 .mode-btn:hover {
-    background: #e2e8f0 !important;
+    background: #edf2f7 !important;
 }
 
+/* 🎯 當前被選中模式的按鈕樣式 */
 .mode-btn.active {
-    background: #007BFF !important;
+    background: #2b6cb0 !important;
     color: white !important;
-    border-color: #007BFF !important;
+    border-color: #2b6cb0 !important;
+    box-shadow: 0 2px 6px rgba(43, 108, 176, 0.3) !important;
 }
 
 /* ==========================================
@@ -647,10 +660,55 @@ body {
     display: block !important;
 }
 
-/* 響應式：手機版底部安全留白 */
-@media screen and (max-width: 768px) {
-    .container {
-        padding-bottom: 85px !important;
+/* ==========================================
+   📱 手機版 RWD 畫面防爆、防擠壓流暢優化
+   ========================================== */
+@media (max-width: 480px) {
+
+    /* 🛠️ 1. 修正「快速外部引進」：輸入框改為垂直堆疊 */
+    .quick-import-row {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+
+    .quick-import-row input {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 🛠️ 2. 修正「引進功能底部選單」：讓下拉選單與引進按鈕在手機上也垂直排列 */
+    /* 核心原理：鎖定引進區塊內（.site-links-container）所有的 flex 並排區塊 */
+    .site-links-container div,
+    .site-links-container .input-group {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        gap: 8px !important;
+    }
+
+    /* 確保選單、按鈕全部 100% 撐滿，不溢出 */
+    .site-links-container select,
+    .site-links-container button {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 🛠️ 3. 模式選擇器防擠壓：維持不換行，改為優雅的左右滑動 */
+    .mode-selector {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px !important;
+        padding-bottom: 10px !important;
+    }
+
+    .mode-btn {
+        flex: 0 0 85px !important;
+        /* 固定每個按鈕寬度，不允許被壓縮 */
+        min-width: 85px !important;
+        white-space: nowrap !important;
     }
 }
 
@@ -671,4 +729,118 @@ body {
     border-bottom: none !important;
     padding-bottom: 0 !important;
     margin-bottom: 2px !important;
+}
+
+/* ==========================================
+   🌐 第五頁：快捷外部貼上與推薦站樣式 (合體優化版)
+   ========================================== */
+.site-links-container {
+    background: #eef2ff;
+    /* 保持淡藍色，與上方手動輸入做區隔 */
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #c7d2fe;
+    /* 配合淡藍色的邊框 */
+}
+
+/* 確保快速引進欄位內的 input 與 select 寬度與間距完美 */
+.site-links-container input,
+.site-links-container select {
+    box-sizing: border-box;
+}
+
+.site-badges {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+    /* 💡 關鍵修正：當新增了 Tatoeba 等更多網站時，允許手機版自動換行，按鈕才不會被切掉 */
+}
+
+.site-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 13px;
+    /* 稍微縮小字體，確保在手機上排版緊湊漂亮 */
+    display: inline-block;
+    transition: transform 0.1s ease;
+}
+
+.site-badge:hover {
+    transform: scale(1.05);
+    /* 滑鼠滑過微幅放大，增加互動質感 */
+}
+
+.site-badge.duo {
+    background-color: #58cc02;
+}
+
+.site-badge.mem {
+    background-color: #b81d24;
+}
+
+.site-badge.quiz {
+    background-color: #4257b2;
+}
+
+.inspiration-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+    padding-bottom: 40px;
+    /* 補上底部留白，防止最後一張卡片太貼近底部導覽列 */
+}
+
+.inspire-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #eef0f2;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    gap: 10px;
+    /* 💡 防止文字過長時直接黏到收藏按鈕上 */
+}
+
+.card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    /* 💡 讓文字區塊自適應伸展，避免太長的句子把按鈕擠變形 */
+}
+
+.new-text {
+    font-size: 16px;
+    color: #2d3748;
+    word-break: break-all;
+    /* 防止長英文單字衝出卡片 */
+}
+
+.new-trans {
+    font-size: 14px;
+    color: #718096;
+}
+
+.add-to-pack-btn {
+    background: #3182ce;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+    /* 💡 確保「➕ 收藏」兩個字永遠在同一行，不會縮水變成兩行 */
+}
+
+.add-to-pack-btn:hover {
+    background: #2b6cb0;
 }
