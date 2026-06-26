@@ -23,37 +23,120 @@ const frenchConjugations = [
 
 const spanishConjugations = [
     { verb: "ser (是/本質)", pronoun: "Yo", answer: "soy", options: ["soy", "eres", "es", "somos"] },
-    { verb: "ser (是/本質)", pronoun: "Tú", answer: "eres", options: ["soy", "eres", "sois", "es"] }
+    { verb: "ser (出/本質)", pronoun: "Tú", answer: "eres", options: ["soy", "eres", "sois", "es"] }
 ];
+
+// 五十音資料庫與相關合併
+const kanaData = [
+    { hiragana: 'あ', katakana: 'ア', romaji: 'a' }, { hiragana: 'い', katakana: 'イ', romaji: 'i' },
+    { hiragana: 'う', katakana: 'ウ', romaji: 'u' }, { hiragana: 'え', katakana: 'エ', romaji: 'e' },
+    { hiragana: 'お', katakana: 'オ', romaji: 'o' }, { hiragana: 'か', katakana: 'カ', romaji: 'ka' },
+    { hiragana: 'き', katakana: 'キ', romaji: 'ki' }, { hiragana: 'く', katakana: 'ク', romaji: 'ku' },
+    { hiragana: 'け', katakana: 'ケ', romaji: 'ke' }, { hiragana: 'こ', katakana: 'コ', romaji: 'ko' },
+    { hiragana: 'さ', katakana: 'サ', romaji: 'sa' }, { hiragana: 'し', katakana: 'シ', romaji: 'shi' },
+    { hiragana: 'す', katakana: 'ス', romaji: 'su' }, { hiragana: 'せ', katakana: 'ケ', romaji: 'se' },
+    { hiragana: 'そ', katakana: 'ソ', romaji: 'so' }, { hiragana: 'た', katakana: 'タ', romaji: 'ta' },
+    { hiragana: 'ち', katakana: 'チ', romaji: 'chi' }, { hiragana: 'つ', katakana: 'ツ', romaji: 'tsu' },
+    { hiragana: 'て', katakana: 'テ', romaji: 'te' }, { hiragana: 'と', katakana: 'ト', romaji: 'to' },
+    { hiragana: 'な', katakana: 'ナ', romaji: 'na' }, { hiragana: 'に', katakana: 'ニ', romaji: 'ni' },
+    { hiragana: 'ぬ', katakana: 'ヌ', romaji: 'nu' }, { hiragana: 'ね', katakana: 'ネ', romaji: 'ne' },
+    { hiragana: 'ノ', katakana: 'ノ', romaji: 'no' }, { hiragana: 'は', katakana: 'ハ', romaji: 'ha' },
+    { hiragana: 'ひ', katakana: 'ヒ', romaji: 'hi' }, { hiragana: 'ふ', katakana: 'フ', romaji: 'fu' },
+    { hiragana: 'へ', katakana: 'ヘ', romaji: 'he' }, { hiragana: 'ほ', katakana: 'ホ', romaji: 'ho' },
+    { hiragana: 'ま', katakana: 'マ', romaji: 'ma' }, { hiragana: 'み', katakana: 'ミ', romaji: 'mi' },
+    { hiragana: 'む', katakana: 'ム', romaji: 'mu' }, { hiragana: 'め', katakana: 'メ', romaji: 'me' },
+    { hiragana: 'も', katakana: 'モ', romaji: 'mo' }, { hiragana: 'や', katakana: 'ヤ', romaji: 'ya' },
+    { hiragana: 'ゆ', katakana: 'ユ', romaji: 'yu' }, { hiragana: 'よ', katakana: 'ヨ', romaji: 'yo' },
+    { hiragana: 'ら', katakana: 'ラ', romaji: 'ra' }, { hiragana: 'り', katakana: 'リ', romaji: 'ri' },
+    { hiragana: 'る', katakana: 'ル', romaji: 'ru' }, { hiragana: 'れ', katakana: 'レ', romaji: 're' },
+    { hiragana: 'ろ', katakana: 'ロ', romaji: 'ro' }, { hiragana: 'わ', katakana: 'ワ', romaji: 'wa' },
+    { hiragana: 'を', katakana: 'ヲ', romaji: 'wo' }, { hiragana: 'ん', katakana: 'ン', romaji: 'n' }
+];
+const dakuon = [
+    { hiragana: "が", katakana: "ガ", romaji: "ga" }, { hiragana: "ぎ", katakana: "ギ", romaji: "gi" },
+    { hiragana: "ぐ", katakana: "グ", romaji: "gu" }, { hiragana: "げ", katakana: "ゲ", romaji: "ge" },
+    { hiragana: "ご", katakana: "ゴ", romaji: "go" }, { hiragana: "ざ", katakana: "ザ", romaji: "za" },
+    { hiragana: "じ", katakana: "ジ", romaji: "ji" }, { hiragana: "ず", katakana: "ズ", romaji: "zu" },
+    { hiragana: "ぜ", katakana: "ゼ", romaji: "ze" }, { hiragana: "ぞ", katakana: "ゾ", romaji: "zo" },
+    { hiragana: "だ", katakana: "打", romaji: "da" }, { hiragana: "ぢ", katakana: "ヂ", romaji: "ji" },
+    { hiragana: "づ", katakana: "ヅ", romaji: "zu" }, { hiragana: "で", katakana: "文", romaji: "de" },
+    { hiragana: "ど", katakana: "ド", romaji: "do" }, { hiragana: "ば", katakana: "バ", romaji: "ba" },
+    { hiragana: "び", katakana: "ビ", romaji: "bi" }, { hiragana: "ぶ", katakana: "ブ", romaji: "bu" },
+    { hiragana: "べ", katakana: "ベ", romaji: "be" }, { hiragana: "ぼ", katakana: "決", romaji: "bo" }
+];
+const handakuon = [
+    { hiragana: "ぱ", katakana: "パ", romaji: "pa" }, { hiragana: "ぴ", katakana: "ピ", romaji: "pi" },
+    { hiragana: "ぷ", katakana: "プ", romaji: "pu" }, { hiragana: "ぺ", katakana: "ペ", romaji: "pe" },
+    { hiragana: "ぽ", katakana: "ポ", romaji: "po" }
+];
+const specialKana = [
+    { hiragana: "きゃ", katakana: "キャ", romaji: "kya" }, { hiragana: "きゅ", katakana: "キュ", romaji: "kyu" }, { hiragana: "きょ", katakana: "キョ", romaji: "kyo" },
+    { hiragana: "しゃ", katakana: "シャ", romaji: "sha" }, { hiragana: "しゅ", katakana: "シュ", romaji: "shu" }, { hiragana: "しょ", katakana: "ショ", romaji: "sho" },
+    { hiragana: "ちゃ", katakana: "チャ", romaji: "cha" }, { hiragana: "ちゅ", katakana: "チュ", romaji: "chu" }, { hiragana: "ちょ", katakana: "チョ", romaji: "cho" },
+    { hiragana: "にゃ", katakana: "ニャ", romaji: "nya" }, { hiragana: "ni_u", katakana: "ニュ", romaji: "nyu" }, { hiragana: "にょ", katakana: "ニョ", romaji: "nyo" },
+    { hiragana: "ひゃ", katakana: "ヒャ", romaji: "hya" }, { hiragana: "ひゅ", katakana: "ヒュ", romaji: "hyu" }, { hiragana: "ひょ", katakana: "ヒョ", romaji: "hyo" },
+    { hiragana: "みゃ", katakana: "ミャ", romaji: "mya" }, { hiragana: "みゅ", katakana: "ミュ", romaji: "myu" }, { hiragana: "みょ", katakana: "ミョ", romaji: "myo" },
+    { hiragana: "りゃ", katakana: "リャ", romaji: "rya" }, { hiragana: "りゅ", katakana: "リュ", romaji: "ryu" }, { hiragana: "りょ", katakana: "リョ", romaji: "ryo" },
+    { hiragana: "ぎゃ", katakana: "ギャ", romaji: "gya" }, { hiragana: "ぎゅ", katakana: "ギュ", romaji: "kyu" }, { hiragana: "ぎょ", katakana: "ギョ", romaji: "gyo" },
+    { hiragana: "じゃ", katakana: "ジャ", romaji: "ja" }, { hiragana: "じゅ", katakana: "ジュ", romaji: "ju" }, { hiragana: "じょ", katakana: "ジョ", romaji: "jo" },
+    { hiragana: "びゃ", katakana: "ビャ", romaji: "bya" }, { hiragana: "びゅ", katakana: "ビュ", romaji: "byu" }, { hiragana: "びょ", katakana: "ビョ", romaji: "byo" },
+    { hiragana: "ぴゃ", katakana: "ピャ", romaji: "pya" }, { hiragana: "ぴゅ", katakana: "ピュ", romaji: "pyu" }, { hiragana: "ぴょ", katakana: "ピョ", romaji: "pyo" },
+    { hiragana: "っ", katakana: "ッ", romaji: "tsu" }
+];
+const chouon = [{ hiragana: "ー", katakana: "ー", romaji: "-" }];
+
+const fullKanaDatabase = [...kanaData, ...dakuon, ...handakuon, ...specialKana, ...chouon];
+let currentKanaQuiz = null;
 
 // ==========================================
 // 2. 全域變數與快取
 // ==========================================
 let userDatabase = JSON.parse(localStorage.getItem("multiLangDynamicDB_v8")) || defaultDatabase;
+
+let userLinks = JSON.parse(localStorage.getItem("multiLangLinks_v8")) || [
+    { title: "NHK Web Easy (日文新聞)", url: "https://www3.nhk.or.jp/news/easy/" },
+    { title: "Duolingo 多鄰國", url: "https://www.duolingo.com/" }
+];
+
 let currentLang = "ja";
-const modeMapping = ["dialogue", "listening", "cloze", "conjugation", "memory"];
+const modeMapping = ["dialogue", "listening", "cloze", "conjugation", "kana"];
 let currentMode = "dialogue";
-let currentCat = "all";
+let currentCat = "all"; // 當前選擇的情境
+
 let currentQuizIndex = 0;
 let currentConjIndex = 0;
 let currentClozeIndex = 0;
-let currentNewsCategory = "international";
-let flippedCards = [];
-let lockBoard = false;
+let currentNewsRegion = "";
 
-const mainContent = document.getElementById("mainContent");
-const siteTitle = document.getElementById("siteTitle");
-const langButtons = document.querySelectorAll(".lang-btn");
-const modeButtons = document.querySelectorAll(".mode-btn");
-const catButtons = document.querySelectorAll(".cat-btn");
-// ⚠️ 修正 [問題3]：移除此處重複的 addBtn 宣告，改在 DOMContentLoaded 內統一處理
+// 儲存動態情境清單 (預設含四大情境)
+let categories = JSON.parse(localStorage.getItem("multiLangCategories_v8")) || [
+    { id: "all", name: "全部情境展示", icon: "🌐" },
+    { id: "food", name: "餐飲美食", icon: "🍱" },
+    { id: "hotel", name: "飯店住宿", icon: "🏨" },
+    { id: "transport", name: "交通運輸", icon: "🚇" },
+    { id: "shopping", name: "購物血拼", icon: "🛍️" }
+];
+
+// DOM 元素快取 (加上安全防呆，免得 HTML 還沒完全渲染出來)
+let mainContent = document.getElementById("mainContent");
+let siteTitle = document.getElementById("siteTitle");
+let langButtons = document.querySelectorAll(".lang-btn");
+let modeButtons = document.querySelectorAll(".mode-btn");
 
 function saveToStorage() {
     localStorage.setItem("multiLangDynamicDB_v8", JSON.stringify(userDatabase));
 }
 
+function saveLinksToStorage() {
+    localStorage.setItem("multiLangLinks_v8", JSON.stringify(userLinks));
+}
+
+function saveCategoriesToStorage() {
+    localStorage.setItem("multiLangCategories_v8", JSON.stringify(categories));
+}
+
 // ==========================================
-// 3. 核心功能函式
+// 3. 核心功能與發音引擎
 // ==========================================
 function speak(text, lang) {
     if ('speechSynthesis' in window) {
@@ -89,35 +172,84 @@ function buildQuizData() {
 }
 
 // ==========================================
-// 4. UI 渲染引擎
+// 4. 各頁面與特訓模式渲染引擎
 // ==========================================
+
+// 💡 核心修改：第二頁（情境選擇頁）專屬渲染函式
+function renderCategoryPage() {
+    const page2Container = document.getElementById("page2");
+    if (!page2Container) return;
+
+    page2Container.innerHTML = `
+        <h2 style="text-align:center; color:#2d3748; margin-bottom:10px;">🧳 選擇學習情境</h2>
+        <p style="text-align:center; color:#718096; font-size:14px; margin-bottom:25px;">點選下方情境，系統將引導你進入第三頁進行深度特訓</p>
+        
+        <div id="categoryGrid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:15px; padding:10px;">
+            ${categories.map(cat => `
+                <button onclick="selectCategoryAndGo('${cat.id}')" class="cat-card-btn" style="background:#fff; border:2px solid #e2e8f0; border-radius:16px; padding:20px 15px; cursor:pointer; text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.02); transition:all 0.2s; display:flex; flex-direction:column; align-items:center; gap:8px;">
+                    <span style="font-size:32px;">${cat.icon}</span>
+                    <span style="font-size:15px; font-weight:bold; color:#2d3748;">${cat.name}</span>
+                </button>
+            `).join('')}
+            
+            <button onclick="addNewCustomCategory()" class="cat-card-btn" style="background:#f7fafc; border:2px dashed #cbd5e0; border-radius:16px; padding:20px 15px; cursor:pointer; text-align:center; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;">
+                <span style="font-size:32px; color:#a0aec0;">➕</span>
+                <span style="font-size:15px; font-weight:bold; color:#718096;">自訂全新情境</span>
+            </button>
+        </div>
+    `;
+}
+
+// 點擊情境按鈕的連動邏輯
+window.selectCategoryAndGo = function (catId) {
+    currentCat = catId;
+    // 自動導向第三頁 (特訓練習頁)
+    navigateToPage(3);
+};
+
+// 建立全新自訂情境的彈窗邏輯
+window.addNewCustomCategory = function () {
+    const catName = prompt("請輸入自訂情境名稱（例如：機場出入境、商務會議）：");
+    if (!catName || !catName.trim()) return;
+
+    const catIcon = prompt("請為這個情境選一個 Emoji 圖標（例如：✈️、💼）：", "📁");
+    const catId = "custom_" + Date.now();
+
+    categories.push({ id: catId, name: catName.trim(), icon: catIcon || "📁" });
+    saveCategoriesToStorage();
+    renderCategoryPage(); // 重繪情境牆
+};
+
+// 💡 第三頁（特訓模式切換與更新）
 function updateUI() {
     const titleMap = { ja: "🌍 旅遊日文隨身包", ko: "🌍 旅遊韓文隨身包", en: "🌍 旅遊英文隨身包", de: "🌍 旅遊德文隨身包", fr: "🌍 旅遊法文隨身包", es: "🌍 旅遊西文隨身包", nan: "🌍 旅遊台語隨身包" };
     if (siteTitle) siteTitle.innerText = titleMap[currentLang] || "🌍 旅遊多語言隨身包";
 
+    // 重新抓取容器，維持 SPA 特性
+    mainContent = document.getElementById("mainContent");
     if (!mainContent) return;
     mainContent.innerHTML = "";
-    flippedCards = [];
-    lockBoard = false;
 
     const exInputEl = document.getElementById("exInput");
     if (exInputEl) {
         exInputEl.placeholder = currentLang === "ja" ? "輸入平假名/片假名讀音 (推薦)" : "延伸句子/拼音提示 (選填)";
     }
 
+    // 根據當前選擇的模式渲染第三頁主區塊
     if (currentMode === "cloze") renderClozeMode();
     else if (currentMode === "conjugation") renderConjugationMode();
     else if (currentMode === "dialogue") renderDialogueMode();
     else if (currentMode === "listening") renderListeningMode();
-    else if (currentMode === "memory") renderMemoryMode();
+    else if (currentMode === "kana") renderKanaMode();
 
-    updateLiveDashboard();
+    // 同步重新整理第四頁看板（如果存在的話）
+    renderNewsLinks();
 }
 
 function renderClozeMode() {
     const data = getFilteredList();
     if (data.length === 0) {
-        mainContent.innerHTML = "<p style='text-align:center;color:#999;padding:20px;'>此情境沒有自訂字詞，無法產生拼字填空題！</p>";
+        mainContent.innerHTML = `<div style='text-align:center;color:#999;padding:40px;'>此情境 (${currentCat}) 沒有自訂字詞，無法產生拼字填空題！<br><br><button onclick="navigateToPage(2)" style="padding:8px 16px; background:#2b6cb0; color:#fff; border:none; border-radius:6px; cursor:pointer;">返回選擇其他情境</button></div>`;
         return;
     }
     const currentItem = data[currentClozeIndex % data.length];
@@ -212,7 +344,7 @@ function renderConjugationMode() {
 function renderDialogueMode() {
     const data = getFilteredList();
     if (data.length === 0) {
-        mainContent.innerHTML = "<p style='text-align:center;color:#999;padding:20px;'>此情境目前沒有任何用語，快去新增一個吧！</p>";
+        mainContent.innerHTML = `<div style='text-align:center;color:#999;padding:40px;'>此情境目前沒有任何用語，快去第五頁管理中心新增一個吧！<br><br><button onclick="navigateToPage(5)" style="padding:8px 16px; background:#2b6cb0; color:#fff; border:none; border-radius:6px; cursor:pointer;">前往管理中心</button></div>`;
         return;
     }
     data.forEach(item => {
@@ -251,7 +383,37 @@ function renderDialogueMode() {
     });
 }
 
+const nanYouTubeVideos = {
+    hotel: { id: "DLomdmQyY0Y", title: "輕輕鬆鬆學閩南語：生活會話入門", desc: "包含問候、住宿、日常對話等實用台語" },
+    restaurant: { id: "4DDmhVlmDUQ", title: "由零開始學台語：第一堂台語課", desc: "包含飲食、點餐、日常用語等基礎台語" },
+    transport: { id: "KdY3Qw5Mo6Q", title: "民視講台語當著時：聲調與基礎會話", desc: "包含問路、交通、方向等實用台語" },
+    shopping: { id: "yH_MF08PPIQ", title: "民視講台語當著時：台語語言能力", desc: "包含討價還價、購物用語等實用台語" },
+    all: { id: "DLomdmQyY0Y", title: "輕輕鬆鬆學閩南語：生活會話入門", desc: "涵蓋各種生活情境的實用台語會話" }
+};
+
 function renderListeningMode() {
+    if (currentLang === "nan") {
+        const videoInfo = nanYouTubeVideos[currentCat] || nanYouTubeVideos["all"];
+        mainContent.innerHTML = `
+            <div style="padding: 10px 0;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; color: white;">
+                    <div style="font-size: 15px; font-weight: bold; margin-bottom: 4px;">🎬 ${videoInfo.title}</div>
+                    <div style="font-size: 12px; opacity: 0.9;">${videoInfo.desc}</div>
+                </div>
+                <div style="position: relative; width: 100%; padding-bottom: 56.25%; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+                    <iframe src="https://www.youtube.com/embed/${videoInfo.id}?rel=0&modestbranding=1" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div style="margin-top: 14px; background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #276749; line-height: 1.6;">
+                    💡 台語目前沒有標準語音引擎，改以真人教學影片輔助聽力練習。觀看影片後可切換至「字卡認識」繼續練習。
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 12px;">
+                    <a href="https://www.youtube.com/watch?v=${videoInfo.id}" target="_blank" rel="noopener noreferrer" style="flex: 1; display: block; text-align: center; padding: 10px; background: #ff0000; color: white; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: bold;">▶ 在 YouTube 全螢幕觀看</a>
+                    <a href="https://www.youtube.com/playlist?list=PLe8vfIFNtjRcbTvj_qwwwxbaaeIukdZTE" target="_blank" rel="noopener noreferrer" style="flex: 1; display: block; text-align: center; padding: 10px; background: #4a5568; color: white; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: bold;">📺 更多台語教學</a>
+                </div>
+            </div>`;
+        return;
+    }
+
     const quizData = buildQuizData();
     if (!quizData) {
         mainContent.innerHTML = "<p style='text-align:center;color:#999;padding:20px;'>此情境沒有用語可產生聽力題目！</p>";
@@ -260,13 +422,12 @@ function renderListeningMode() {
     mainContent.innerHTML = `
         <div class="quiz-box">
             <h3>🎧 情境聽力測驗</h3>
-            <button class="play-quiz-btn" id="quizAudioBtn">📢 播放</button>
+            <button class="play-quiz-btn" id="quizAudioBtn">📢 播放題目語音</button>
             <div class="options-grid" id="optionsGrid"></div>
             <p id="quizFeedback" style="margin-top:15px; font-weight:bold;"></p>
         </div>`;
 
     document.getElementById("quizAudioBtn").addEventListener("click", () => speak(quizData.audioText, currentLang));
-    speak(quizData.audioText, currentLang);
 
     const grid = document.getElementById("optionsGrid");
     const feedback = document.getElementById("quizFeedback");
@@ -287,459 +448,334 @@ function renderListeningMode() {
     });
 }
 
-function renderMemoryMode() {
-    const dialogues = getFilteredList();
-    if (dialogues.length < 2) {
-        mainContent.innerHTML = "<p style='text-align:center;color:#999;padding:20px;'>本情境需要至少 2 個用語才能進行翻牌小遊戲！</p>";
-        return;
-    }
-    let cardsData = [];
-    dialogues.forEach((item, index) => {
-        cardsData.push({ id: index, displayText: item.text });
-        cardsData.push({ id: index, displayText: item.trans });
-    });
-    cardsData.sort(() => Math.random() - 0.5);
-
-    mainContent.innerHTML = `<h3>🧠 情境記憶翻牌</h3><div class="game-grid" id="gameGrid"></div>`;
-    const gameGrid = document.getElementById("gameGrid");
-
-    cardsData.forEach(data => {
-        const cardObj = document.createElement("div");
-        cardObj.className = "memory-card";
-        cardObj.innerText = data.displayText;
-        cardObj.dataset.id = data.id;
-        cardObj.addEventListener("click", () => {
-            if (lockBoard || cardObj.classList.contains("flipped")) return;
-            cardObj.classList.add("flipped");
-            flippedCards.push(cardObj);
-            if (flippedCards.length === 2) {
-                const [c1, c2] = flippedCards;
-                if (c1.dataset.id === c2.dataset.id) {
-                    lockBoard = true;
-                    setTimeout(() => { c1.classList.add("matched"); c2.classList.add("matched"); flippedCards = []; lockBoard = false; }, 400);
-                } else {
-                    lockBoard = true;
-                    setTimeout(() => { c1.classList.remove("flipped"); c2.classList.remove("flipped"); flippedCards = []; lockBoard = false; }, 1000);
-                }
-            }
-        });
-        gameGrid.appendChild(cardObj);
-    });
-}
-
-// ==========================================
-// 5. 🗃️ 擬真生活動態看板資料（全面在地化升級版）
-// ==========================================
-const dashConfig = {
-    ja: {
-        name: "📍 東京",
-        weather: "☀️ 快晴 🌡️ 28°C",
-        astroTitle: "🔮 今日の運勢",
-        astroBody: "🎯 新しい単語を学ぶのに最適な一日です！<br>🍀 ラッキーアイテム：<span class='lucky-item'>ホットコーヒー</span>",
-        categories: { international: "国際", finance: "財経", tech: "科学技術", local: "地域", health: "健康" },
-        astroList: ["牡羊座", "牡牛座", "双子座", "蟹座", "獅子座", "乙女座", "天秤座", "蠍座", "射手座", "山羊座", "水瓶座", "魚座"],
-        news: {
-            international: ["NHK: 気候危機対応会議が東京で開幕", "読売: デジタル市場法の新規制が今日から全面施行"],
-            finance: ["日経: 日経平均株価が史上最高値を更新"],
-            tech: ["TechJP: ソニーが次世代VRヘッドセットの技術を発表"],
-            local: ["朝日: 都心で今季一番の冷え込み、上着の用意を"],
-            health: ["医療: バイオ新薬が承認、患者に新たな光"]
-        }
-    },
-    ko: {
-        name: "📍 서울",
-        weather: "☀️ 맑음 🌡️ 26°C",
-        astroTitle: "🔮 오늘의 운세",
-        astroBody: "🎯 새 단어를 공부하기에 가장 좋은 날입니다!<br>🍀 행운의 아이템: <span class='lucky-item'>따뜻한 커피</span>",
-        categories: { international: "국제", finance: "금융", tech: "기술", local: "지역", health: "건강" },
-        astroList: ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"],
-        news: {
-            international: ["연합: 국제 기후 정상회의 서울에서 개막"],
-            finance: ["매경: 반도체 주가 강세, 코스피 지수 최고치 돌파"],
-            tech: ["디지털: 차세대 폴더블 디스플레이 핵심 기술 공개"],
-            local: ["SBS: 아침 출근길 쌀쌀, 옷차림 든든히 하세요"],
-            health: ["메디컬: 혁신 바이오 신약 승인, 환자들에게 희망"]
-        }
-    },
-    en: {
-        name: "📍 Global Desk (New York)",
-        weather: "☀️ Clear 🌡️ 23°C",
-        astroTitle: "🔮 Today's Horoscope",
-        astroBody: "🎯 Perfect day for expanding your vocabulary!<br>🍀 Lucky Item: <span class='lucky-item'>Hot Coffee</span>",
-        categories: { international: "Global", finance: "Finance", tech: "Tech", local: "Local", health: "Health" },
-        customTabs: {
-            "us": "USA", "ca": "Canada", "au": "Australia", "uk": "UK", "mt": "Montreal",
-            "local": "Local", "international": "Global", "finance": "Finance", "tech": "Tech", "health": "Health"
-        },
-        astroList: ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"],
-        news: {
-            international: ["BBC: Global Climate Summit Opens in New York"],
-            finance: ["Bloomberg: Markets Rally on Tech Gains"],
-            tech: ["Verge: Breakthrough in Next-Gen AI Models Announced"],
-            local: ["CNN: Local Transit System Upgrades Implemented"],
-            health: ["WebMD: New Research Highlights Balanced Diet Benefits"]
-        }
-    },
-    de: {
-        name: "📍 Berlin",
-        weather: "☀️ Klar 🌡️ 21°C",
-        astroTitle: "🔮 Horoskop für heute",
-        astroBody: "🎯 Ein perfekter Tag, um neue Vokabeln zu lernen!<br>🍀 Glücksbringer: <span class='lucky-item'>Heißer Kaffee</span>",
-        categories: { international: "International", finance: "Finanzen", tech: "Tech", local: "Lokal", health: "Gesundheit" },
-        astroList: ["Widder", "Stier", "Zwillinge", "Krebs", "Löwe", "Jungfrau", "Waage", "Skorpion", "Schütze", "Steinbock", "Wassermann", "Fische"],
-        news: {
-            international: ["ZDF: Klimakonferenz erzielt Durchbruch in Berlin."],
-            finance: ["FAZ: Automobilexporte erreichen neuen Rekordwert."],
-            tech: ["Heise: Durchbruch bei KI-Modellen der nächsten Generation."],
-            local: ["Tagesspiegel: Modernisierung des Nahverkehrs erfolgreich gestartet."],
-            health: ["ApothekenUmschau: Neue Studie betont Vorteile einer ausgewogenen Ernährung."]
-        }
-    },
-    es: {
-        name: "📍 Madrid",
-        weather: "☀️ Despejado 🌡️ 29°C",
-        astroTitle: "🔮 Horóscopo de hoy",
-        astroBody: "🎯 ¡Un día perfecto para aprender nuevo vocabulario!<br>🍀 Objeto de la suerte: <span class='lucky-item'>Café caliente</span>",
-        categories: { international: "Internacional", finance: "Finanzas", tech: "Tecnología", local: "Local", health: "Salud" },
-        astroList: ["Aries", "Tauro", "Géminis", "Cáncer", "Leo", "Virgo", "Libra", "Escorpio", "Sagitario", "Capricornio", "Acuario", "Piscis"],
-        news: {
-            international: ["El País: Cumbre sobre el cambio climático en Madrid."],
-            finance: ["El Mundo: Los mercados suben gracias a las empresas tecnológicas."],
-            tech: ["Xataka: Avance clave en la tecnología de pantallas plegables."],
-            local: ["ABC: Mañana fresca en la ciudad, se recomienda llevar chaqueta."],
-            health: ["La Vanguardia: Nueva investigación resalta los beneficios de la dieta mediterránea."]
-        }
-    },
-    fr: {
-        name: "📍 Paris",
-        weather: "☀️ Degagé 🌡️ 22°C",
-        astroTitle: "🔮 Horoscope d'aujourd'hui",
-        astroBody: "🎯 Une journée parfaite pour apprendre du nouveau vocabulaire !<br>🍀 Objet chanceux : <span class='lucky-item'>Café chaud</span>",
-        categories: { international: "International", finance: "Finances", tech: "Tech", local: "Local", health: "Santé" },
-        customTabs: {
-            "fr": "France", "ca": "Canada", "qc": "Québec",
-            "local": "Local", "international": "International", "finance": "Finances", "tech": "Tech", "health": "Santé"
-        },
-        astroList: ["Bélier", "Taureau", "Gémeaux", "Cancer", "Lion", "Vierge", "Balance", "Scorpion", "Sagittaire", "Capricorne", "Verseau", "Poissons"],
-        news: {
-            international: ["Le Monde: Sommet mondial sur le climat à Paris."],
-            finance: ["Les Echos: Les marchés rebondissent portés par la tech."],
-            tech: ["Numérama: Présentation d'un matériel VR de nouvelle génération."],
-            local: ["Le Figaro: Améliorations majeures dans les transports en commun parisiens."],
-            health: ["Doctissimo: L'exercice quotidien lié à une plus grande longévité."]
-        }
-    },
-    nan: {
-        name: "📍 台灣 (台北)",
-        weather: "☀️ 出日頭 🌡️ 31°C",
-        astroTitle: "🔮 欲看今仔日的運勢",
-        astroBody: "🎯 今仔日是學新單字尚好嘅時機！<br>🍀 幸運物：<span class='lucky-item'>燒咖啡</span>",
-        categories: { international: "國際", finance: "財經", tech: "科技", local: "在地", health: "健康" },
-        astroList: ["牡羊座", "金牛座", "雙子座", "巨蟹座", "獅子座", "處女座", "天秤座", "天蠍座", "射手座", "摩羯座", "水瓶座", "雙魚座"],
-        news: {
-            international: ["國際時事：全球環境保護高峰會正式開議"],
-            finance: ["工商時報：科技股帶頭衝，台股指數再創新高"],
-            tech: ["科技新報：次世代顯示技術核心專利正式公開"],
-            local: ["在地新聞：透早出門會畏寒，逐家愛穿予燒絡"],
-            health: ["健康醫療：最新研究顯示均衡飲食對身體有大好處"]
-        }
-    }
-};
-
-// ==========================================
-// 📊 獨立的工具函式區（唯一版本，不重複宣告）
-// ==========================================
-
-// ⚠️ 修正 [問題1]：合併兩個重複的 updateLiveDashboard，保留最完整版本
-function updateLiveDashboard() {
-    const lang = typeof currentLang !== 'undefined' ? currentLang : 'en';
-    const cat = typeof currentNewsCategory !== 'undefined' ? currentNewsCategory : 'international';
-
-    if (typeof dashConfig === 'undefined') return;
-    const config = dashConfig[lang] || dashConfig["en"];
-    if (!config) return;
-
-    const locEl = document.getElementById("dashboardLocation");
-    const weaEl = document.getElementById("dashboardWeather");
-
-    if (locEl) locEl.innerText = config.name || "";
-    if (weaEl) weaEl.innerText = config.weather || "";
-
-    // 分類按鈕多語言化
-    if (config.categories) {
-        document.querySelectorAll('#generalNewsTabs .news-tab').forEach(tab => {
-            const catAttr = tab.getAttribute('data-category');
-            if (catAttr && config.categories[catAttr]) {
-                tab.innerText = config.categories[catAttr];
-            }
-        });
-    }
-
-    // 英法文面板按鈕翻譯
-    if (config.customTabs) {
-        document.querySelectorAll('#englishNewsControls .news-tab').forEach(tab => {
-            let tabKey = tab.getAttribute('data-region') || tab.getAttribute('data-category');
-            if (tabKey) {
-                tabKey = tabKey.trim().toLowerCase();
-                if (tabKey === 'montreal') tabKey = 'mt';
-                if (config.customTabs[tabKey]) tab.innerText = config.customTabs[tabKey];
-            }
-        });
-
-        document.querySelectorAll('#frenchNewsControls .news-tab').forEach(tab => {
-            let tabKey = tab.getAttribute('data-region') || tab.getAttribute('data-category');
-            if (tabKey) {
-                tabKey = tabKey.trim().toLowerCase();
-                if (config.customTabs[tabKey]) tab.innerText = config.customTabs[tabKey];
-            }
-        });
-    }
-
-    // 驅動星座與運勢多語言轉換
-    updateHoroscope(config);
-
-    // 控制特殊看板分頁隱現
-    const generalTabs = document.getElementById('generalNewsTabs');
-    const englishControls = document.getElementById('englishNewsControls');
-    const frenchControls = document.getElementById('frenchNewsControls');
-
-    if (generalTabs) generalTabs.style.display = (lang !== 'en' && lang !== 'fr') ? 'flex' : 'none';
-    if (englishControls) englishControls.style.display = (lang === 'en') ? 'flex' : 'none';
-    if (frenchControls) frenchControls.style.display = (lang === 'fr') ? 'flex' : 'none';
-
-    // 抓取新聞並渲染
-    if (config.news) {
-        const currentList = config.news[cat] || config.news["international"] || [];
-        renderNewsList(currentList);
-    }
-}
-
-// ⚠️ 修正 [問題1]：合併兩個重複的 updateHoroscope，保留最完整版本
-function updateHoroscope(passedConfig) {
-    const lang = typeof currentLang !== 'undefined' ? currentLang : 'en';
-    if (typeof dashConfig === 'undefined') return;
-
-    const config = (passedConfig && passedConfig.astroBody) ? passedConfig : (dashConfig[lang] || dashConfig["en"]);
-
-    const select = document.getElementById("astroSelect");
-    const content = document.getElementById("horoscopeContent");
-    const titleEl = document.getElementById("astro-title");
-
-    if (config) {
-        if (content && config.astroBody) content.innerHTML = config.astroBody;
-        if (titleEl && config.astroTitle) titleEl.innerHTML = config.astroTitle;
-    }
-
-    if (select && config && config.astroList) {
-        const currentSelectedIndex = select.selectedIndex >= 0 ? select.selectedIndex : 0;
-        select.innerHTML = "";
-        config.astroList.forEach(a => {
-            const o = document.createElement("option");
-            o.value = a;
-            o.innerText = a;
-            select.appendChild(o);
-        });
-        select.selectedIndex = currentSelectedIndex;
-    }
-}
-
-// ==========================================
-// 📡 GNews API 新聞抓取器
-// ==========================================
-// 使用前請至 https://gnews.io 免費註冊取得 API Key
-// 免費方案：每日 100 次請求，支援多語言與多國
-// ==========================================
-
-// ⚠️ 請將下方 YOUR_API_KEY 替換為你的 GNews API Key
-const GNEWS_API_KEY = "a4758db3cb6b575daedb9593c7c686c8";
-
-// 各語系對應的 GNews lang 與 country 參數
-const gnewsLangMap = {
-    ja: { lang: "ja", country: "jp" },
-    ko: { lang: "ko", country: "kr" },
-    en: { lang: "en", country: "us" },
-    de: { lang: "de", country: "de" },
-    fr: { lang: "fr", country: "fr" },
-    es: { lang: "es", country: "es" },
-    nan: { lang: "zh-tw", country: "tw" }
-};
-
-// 地區代碼對應 GNews country
-const gnewsRegionMap = {
-    us: "us", ca: "ca", au: "au", uk: "gb", mt: "ca",
-    fr: "fr", qc: "ca"
-};
-
-// 分類對應 GNews topic（GNews 免費版用 top-headlines + topic）
-const gnewsCategoryMap = {
-    international: "world",
-    finance: "business",
-    tech: "technology",
-    local: "nation",
-    health: "health"
-};
-
-// 清除 HTML 標籤與常見 HTML 實體
-function stripHtml(str) {
-    return (str || "")
-        .replace(/<[^>]*>/g, "")
-        .replace(/&nbsp;/g, " ")
-        .replace(/&amp;/g, "&")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .trim();
-}
-
-// 呼叫 GNews API 取得最新 3 則新聞
-async function fetchAINews(lang, category, region) {
-    const newsListEl = document.getElementById("newsList");
-    if (!newsListEl) return;
-
-    // 尚未設定 API Key 時提示使用者
-    if (!GNEWS_API_KEY || GNEWS_API_KEY === "YOUR_API_KEY") {
-        newsListEl.innerHTML = `
-            <li style="list-style:none; text-align:center; padding:16px 12px; color:#c05621; background:#feebc8; border-radius:8px; margin:8px 0;">
-                🔑 請先設定 GNews API Key<br>
-                <span style="font-size:12px;">至 <a href="https://gnews.io" target="_blank" style="color:#c05621;">gnews.io</a> 免費註冊，
-                再將 script.js 第一行的 <b>YOUR_API_KEY</b> 換成你的 Key</span>
-            </li>`;
+function renderKanaMode() {
+    if (currentLang !== 'ja') {
+        mainContent.innerHTML = `
+            <div style="text-align:center; padding:40px; color:#718096;">
+                <h3>🇯🇵 五十音特訓為日文專屬功能</h3>
+                <p>請先在上方「語系」切換為日文唷！</p>
+            </div>`;
         return;
     }
 
-    newsListEl.innerHTML = `
-        <li style="list-style:none; text-align:center; padding:20px 0; color:#718096;">
-            <div style="font-size:24px; margin-bottom:8px;">⏳</div>
-            <div>正在取得最新新聞…</div>
-        </li>`;
+    mainContent.innerHTML = `
+        <div class="kana-container" style="width: 100%; max-width: 500px; margin: 0 auto;">
+            <div class="kana-quiz-box" style="background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.08); text-align:center; margin-bottom:20px; border: 1px solid #e2e8f0;">
+                <h4 style="margin:0 0 10px 0; color:#4a5568; font-size:16px;">🧠 五十音全字元隨機測驗</h4>
+                <div id="kanaQuestion" style="font-size:56px; font-weight:bold; color:#2b6cb0; margin:10px 0; min-height:80px; display:flex; align-items:center; justify-content:center;">--</div>
+                <p id="kanaPrompt" style="color:#718096; margin-bottom:15px; font-size:14px;">請輸入這個字的羅馬拼音</p>
+                <div style="display:flex; gap:10px; justify-content:center; align-items:center;">
+                    <input type="text" id="kanaAnswerInput" placeholder="拼音..." style="padding:10px; border:2px solid #e2e8f0; border-radius:8px; width:120px; text-align:center; font-size:18px; outline:none;" autocomplete="off">
+                    <button id="kanaSubmitBtn" style="background:#2b6cb0; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:15px;">對答案</button>
+                </div>
+                <div id="kanaResult" style="margin-top:15px; font-weight:bold; font-size:16px; min-height:24px;"></div>
+            </div>
 
-    try {
-        // 決定語言與國家
-        const langConfig = gnewsLangMap[lang] || gnewsLangMap["en"];
-        const langParam = langConfig.lang;
-        const countryParam = region ? (gnewsRegionMap[region] || langConfig.country) : langConfig.country;
-        const topicParam = gnewsCategoryMap[category] || "world";
+            <div class="kana-chart-box" style="background:#f7fafc; padding:15px; border-radius:12px; border: 1px solid #e2e8f0;">
+                <h4 style="margin:0 0 12px 0; color:#4a5568; text-align:center; font-size:15px;">📋 五十音快速對照表 (目前顯示：清音)</h4>
+                <div class="kana-grid" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:8px; max-height:240px; overflow-y:auto; padding:5px;">
+                    ${kanaData.map(k => `
+                        <div style="background:#fff; border:1px solid #edf2f7; border-radius:6px; padding:6px; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                            <div style="font-size:15px; font-weight:bold; color:#2d3748;">${k.hiragana}${k.katakana}</div>
+                            <div style="color:#a0aec0; font-size:11px; font-weight:500;">${k.romaji}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>`;
 
-        // GNews top-headlines endpoint
-        const apiUrl = `https://gnews.io/api/v4/top-headlines?topic=${topicParam}&lang=${langParam}&country=${countryParam}&max=3&token=${GNEWS_API_KEY}`;
+    document.getElementById("kanaSubmitBtn").addEventListener("click", checkKanaAnswer);
+    document.getElementById("kanaAnswerInput").addEventListener("keypress", (e) => { if (e.key === "Enter") checkKanaAnswer(); });
+    generateKanaQuestion();
+}
 
-        const response = await fetch(apiUrl);
+function generateKanaQuestion() {
+    const qEl = document.getElementById('kanaQuestion');
+    const pEl = document.getElementById('kanaPrompt');
+    const iEl = document.getElementById('kanaAnswerInput');
+    const rEl = document.getElementById('kanaResult');
+    if (!qEl || !pEl || !iEl) return;
 
-        if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.errors?.[0] || `HTTP ${response.status}`);
-        }
+    const rand = fullKanaDatabase[Math.floor(Math.random() * fullKanaDatabase.length)];
+    const isHiragana = Math.random() > 0.5;
 
-        const data = await response.json();
+    currentKanaQuiz = {
+        question: isHiragana ? rand.hiragana : rand.katakana,
+        answer: rand.romaji,
+        type: isHiragana ? '平假名' : '片假名'
+    };
 
-        if (!Array.isArray(data.articles) || data.articles.length === 0) {
-            throw new Error("此分類目前沒有新聞");
-        }
+    qEl.innerText = currentKanaQuiz.question;
+    pEl.innerText = `請輸入這個 ${currentKanaQuiz.type} 的羅馬拼音 (小寫):`;
+    iEl.value = '';
+    iEl.focus();
+    rEl.innerText = '';
+}
 
-        // 轉成 {title, body, link} 格式
-        const newsArray = data.articles.slice(0, 3).map(article => ({
-            title: stripHtml(article.title) || "（無標題）",
-            body: stripHtml(article.description || article.content || "詳細內容請至原始來源閱讀。").substring(0, 600),
-            link: article.url || ""
-        }));
+function checkKanaAnswer() {
+    const inputField = document.getElementById('kanaAnswerInput');
+    const resultField = document.getElementById('kanaResult');
+    if (!inputField || !resultField || !currentKanaQuiz) return;
 
-        renderNewsList(newsArray);
+    const userAnswer = inputField.value.trim().toLowerCase();
 
-    } catch (err) {
-        console.error("新聞載入失敗：", err);
-        newsListEl.innerHTML = `
-            <li style="list-style:none; text-align:center; padding:16px 0; color:#e53e3e;">
-                ⚠️ 新聞載入失敗，請稍後再試<br>
-                <span style="font-size:12px; color:#aaa;">${err.message}</span>
-            </li>`;
+    if (userAnswer === currentKanaQuiz.answer) {
+        resultField.style.color = '#38a169';
+        resultField.innerText = '🎉 答對了！太厲害了！';
+        setTimeout(generateKanaQuestion, 1200);
+    } else {
+        resultField.style.color = '#e53e3e';
+        resultField.innerText = `❌ 答錯囉！答案是 [ ${currentKanaQuiz.answer} ]`;
     }
 }
 
-// 渲染新聞列表（支援 {title, body, link} 物件或純字串）
-function renderNewsList(newsArray) {
-    const newsListEl = document.getElementById("newsList");
-    if (!newsListEl) return;
+// ==========================================
+// 5. 第四頁：📰 官方推薦新聞導航看板
+// ==========================================
+const newsDatabase = {
+    ja: { hasRegions: false, links: [{ name: "NHK NEWS WEB", url: "https://www3.nhk.or.jp/news/", desc: "最推薦！附帶平假名注音與簡單日文版" }, { name: "Yahoo!ニュース", url: "https://news.yahoo.co.jp/", desc: "日本最大綜合評論新聞網" }, { name: "読売新聞", url: "https://www.yomiuri.co.jp/", desc: "日本發行量極大的主流報紙" }, { name: "朝日新聞デジタル", url: "https://www.asahi.com/", desc: "內容深入，適合中高級學習者" }] },
+    en: { hasRegions: true, regions: { us: [{ name: "CNN International", url: "https://edition.cnn.com/", desc: "美國最具代表性的即時新聞網" }, { name: "The New York Times", url: "https://www.nytimes.com/", desc: "紐約時報，字彙豐富適合深度閱讀" }, { name: "NPR News", url: "https://www.npr.org/", desc: "美國國家公共廣播，適合練習聽力" }], ca: [{ name: "CBC News", url: "https://www.cbc.ca/news", desc: "加拿大國家廣播公司新聞" }, { name: "The Globe and Mail", url: "https://www.theglobeandmail.com/", desc: "地球郵報，加拿大主流嚴肅媒體" }], uk: [{ name: "BBC News", url: "https://www.bbc.com/news", desc: "英國廣播公司，標準英式英語首選" }, { name: "The Guardian", url: "https://www.theguardian.com/uk", desc: "衛報，英國獨立高質感大報" }], au: [{ name: "ABC News Australia", url: "https://www.abc.net.au/news", desc: "澳洲廣播公司新聞網" }, { name: "The Sydney Morning Herald", url: "https://www.smh.com.au/", desc: "雪梨晨鋒報，澳洲歷史悠久媒體" }] } },
+    fr: { hasRegions: true, regions: { france: [{ name: "Le Monde", url: "https://www.lemonde.fr/", desc: "法國世界報，極具權威性的法語學習素材" }, { name: "Le Figaro", url: "https://www.lefigaro.fr/", desc: "費加洛報，法國歷史悠久的主流媒體" }, { name: "France info", url: "https://www.francetvinfo.fr/", desc: "即時圖文新聞，用詞現代活潑" }], canada: [{ name: "Radio-Canada", url: "https://ici.radio-canada.ca/", desc: "加拿大法語廣播，魁北克法語首選" }, { name: "Le Devoir", url: "https://www.ledevoir.com/", desc: "蒙特婁獨立大報，探討深度加拿大議題" }] } },
+    ko: { hasRegions: false, links: [{ name: "NAVER 뉴스", url: "https://news.naver.com/", desc: "韓國最大入口網站新聞區" }, { name: "연합뉴스 (Yonhap)", url: "https://www.yna.co.kr/", desc: "聯合新聞，韓國國家通訊社" }, { name: "朝鮮日報", url: "https://www.chosun.com/", desc: "韓國主流大報之一" }] },
+    de: { hasRegions: false, links: [{ name: "Tagesschau", url: "https://www.tagesschau.de/", desc: "德國最權威的公共電視新聞網" }, { name: "Spiegel", url: "https://www.spiegel.de/", desc: "鏡報，非常適合進階德語閱讀" }] },
+    es: { hasRegions: false, links: [{ name: "El País", url: "https://elpais.com/", desc: "西班牙國家報，全球發行量最大的西語媒體" }, { name: "RTVE.es", url: "https://www.rtve.es/noticias/", desc: "西班牙國家廣播電視台" }] },
+    nan: { hasRegions: false, links: [{ name: "公視台語台", url: "https://taigi.pts.org.tw/", desc: "最優質的台灣話新聞與影音學習資源" }] }
+};
 
-    newsListEl.innerHTML = "";
+function renderNewsLinks() {
+    const regionTabsContainer = document.getElementById("newsRegionTabs");
+    const linkListContainer = document.getElementById("newsLinkList");
+    if (!linkListContainer) return;
 
-    if (!newsArray || newsArray.length === 0) {
-        newsListEl.innerHTML = `<li style="color:#999; text-align:center; list-style:none;">📭 目前暫無即時新聞</li>`;
+    const langData = newsDatabase[currentLang];
+    if (!langData) {
+        linkListContainer.innerHTML = "<li style='list-style:none; color:#999; text-align:center; padding: 20px;'>目前無此語言的新聞推薦</li>";
+        if (regionTabsContainer) regionTabsContainer.style.display = "none";
         return;
     }
 
-    newsArray.slice(0, 3).forEach((newsItem) => {
+    if (langData.hasRegions) {
+        if (regionTabsContainer) {
+            regionTabsContainer.style.display = "flex";
+            regionTabsContainer.innerHTML = "";
+            const regionKeys = Object.keys(langData.regions);
+            if (!regionKeys.includes(currentNewsRegion)) currentNewsRegion = regionKeys[0];
+
+            regionKeys.forEach(regionKey => {
+                const btn = document.createElement("button");
+                btn.className = `news-tab ${currentNewsRegion === regionKey ? "active" : ""}`;
+                btn.style.cssText = currentNewsRegion === regionKey
+                    ? "background:#2b6cb0; color:#fff; border:none; padding:6px 12px; border-radius:20px; cursor:pointer; font-size:13px; font-weight:bold;"
+                    : "background:#e2e8f0; color:#4a5568; border:none; padding:6px 12px; border-radius:20px; cursor:pointer; font-size:13px; font-weight:bold;";
+
+                const regionNames = { us: "🇺🇸 美國", ca: "🇨🇦 加拿大", uk: "🇬🇧 英國", au: "🇦🇺 澳大利亞", france: "🇫🇷 法國", canada: "🇨🇦 加拿大" };
+                btn.innerText = regionNames[regionKey] || regionKey;
+                btn.addEventListener("click", () => { currentNewsRegion = regionKey; renderNewsLinks(); });
+                regionTabsContainer.appendChild(btn);
+            });
+        }
+        displayLinks(langData.regions[currentNewsRegion]);
+    } else {
+        if (regionTabsContainer) regionTabsContainer.style.display = "none";
+        displayLinks(langData.links);
+    }
+}
+
+function displayLinks(linksArray) {
+    const linkListContainer = document.getElementById("newsLinkList");
+    if (!linkListContainer) return;
+    linkListContainer.innerHTML = "";
+    linksArray.forEach(site => {
         const li = document.createElement("li");
-        const titleText = (typeof newsItem === "object") ? (newsItem.title || "") : newsItem;
-        const bodyText = (typeof newsItem === "object") ? (newsItem.body || newsItem.content || "詳細內容請參閱官方報導。") : newsItem;
-        const linkUrl = (typeof newsItem === "object") ? (newsItem.link || "") : "";
-
-        li.innerHTML = `<span style="margin-right:6px;">📰</span>${titleText}`;
-        li.style.cursor = "pointer";
-        li.addEventListener("click", () => openNewsModal(titleText, bodyText, linkUrl));
-        newsListEl.appendChild(li);
+        li.style.listStyle = "none";
+        li.innerHTML = `
+            <a href="${site.url}" target="_blank" class="news-link-item" rel="noopener noreferrer" style="display:block; background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; margin-bottom:12px; text-decoration:none; color:#2d3748; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                <div class="news-link-title" style="font-size:16px; font-weight:bold; color:#2b6cb0; margin-bottom:4px;">🔗 ${site.name}</div>
+                <div class="news-link-desc" style="font-size:13px; color:#718096; line-height:1.5;">${site.desc}</div>
+            </a>`;
+        linkListContainer.appendChild(li);
     });
 }
 
+// ==========================================
+// 6. 第五頁：🛠️ 引進與全功能管理中心 (CRUD)
+// ==========================================
+function renderPage5ImportCenter() {
+    const page5Container = document.getElementById("page5");
+    if (!page5Container) return;
 
-// 彈出視窗顯示與關閉（link 為可選的原文網址）
-function openNewsModal(title, body, link) {
-    const modal = document.getElementById("newsModal");
-    const modalTitle = document.getElementById("modalTitle");
-    const modalBody = document.getElementById("modalBody");
+    const langNames = { ja: '日語', ko: '韓語', en: '英語', de: '德語', fr: '法語', es: '西語', nan: '台語' };
+    const activeLangName = langNames[currentLang] || currentLang;
+    const currentLangWords = userDatabase[currentLang] || [];
 
-    if (modal && modalTitle && modalBody) {
-        modalTitle.innerText = title;
+    page5Container.innerHTML = `
+        <h2 style="margin-bottom: 20px; color: #2d3748; text-align: center;">動態引進與管理中心</h2>
+        
+        <div class="import-card" style="background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05); margin-bottom:25px; border: 1px solid #e2e8f0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0; color:#2b6cb0; font-size:18px;">📝 字句庫管理 (${activeLangName})</h3>
+                <span style="font-size:12px; background:#ebf8ff; color:#2b6cb0; padding:4px 10px; border-radius:12px; font-weight:bold;">隨切換語系連動變更</span>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px; background:#f7fafc; padding:15px; border-radius:8px; border:1px dashed #cbd5e0;">
+                <h4 style="margin:0; color:#4a5568; font-size:13px;">➕ 快速引進新詞彙到 ${activeLangName}：</h4>
+                <input type="text" id="p5WordInput" placeholder="外文內容 (必填)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+                <input type="text" id="p5TransInput" placeholder="中文翻譯 (必填)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+                <input type="text" id="p5ExInput" placeholder="延伸句子/讀音提示 (選填)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+                <select id="p5CatInput" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+                    ${categories.map(cat => `<option value="${cat.id}">${cat.icon} ${cat.name} (${cat.id})</option>`).join('')}
+                </select>
+                <button onclick="addWordFromPage5()" style="background:#2b6cb0; color:#fff; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px; margin-top:4px;">確認引進並存檔</button>
+            </div>
 
-        // 內文
-        modalBody.innerText = body;
-        modalBody.style.whiteSpace = "pre-line";
-        modalBody.style.lineHeight = "1.8";
-        modalBody.style.color = "#4a5568";
-        modalBody.style.fontSize = "14px";
+            <h4 style="margin:0 0 10px 0; color:#4a5568; font-size:14px;">📋 已儲存字句清單 (${currentLangWords.length})</h4>
+            <div id="wordsList" style="display:flex; flex-direction:column; gap:8px; max-height:250px; overflow-y:auto; padding-right:5px;">
+                ${currentLangWords.map((item, index) => {
+        const matchedCat = categories.find(c => c.id === item.category);
+        const catDisplayName = matchedCat ? `${matchedCat.icon} ${matchedCat.name}` : item.category;
+        return `
+                    <div style="background:#fff; border:1px solid #edf2f7; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.01);">
+                        <div style="flex:1; margin-right:10px; min-width:0;">
+                            <div style="font-size:14px; font-weight:bold; color:#2d3748; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.text}</div>
+                            <div style="font-size:12px; color:#718096; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">意：${item.trans} | 類：${catDisplayName}</div>
+                        </div>
+                        <div style="display:flex; gap:6px; flex-shrink:0;">
+                            <button onclick="editWordFromPage5(${index})" style="background:#ecc94b; color:#744210; border:none; padding:4px 8px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">修改</button>
+                            <button onclick="deleteWordFromPage5(${index})" style="background:#e53e3e; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">刪除</button>
+                        </div>
+                    </div>`;
+    }).join('')}
+                ${currentLangWords.length === 0 ? '<p style="text-align:center; color:#a0aec0; padding:15px; font-size:13px; margin:0;">目前此語系沒有任何自訂字句唷！</p>' : ''}
+            </div>
+        </div>
 
-        // 若有原文連結，插入「前往原文」按鈕（先移除舊的避免重複）
-        const oldBtn = document.getElementById("modalReadMoreBtn");
-        if (oldBtn) oldBtn.remove();
+        <div class="import-card" style="background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+            <h3 style="margin:0 0 15px 0; color:#2c5282; font-size:18px;">🌐 私房學習網站連結管理</h3>
+            
+            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px; background:#f7fafc; padding:15px; border-radius:8px; border:1px dashed #cbd5e0;">
+                <h4 style="margin:0; color:#4a5568; font-size:13px;">➕ 新增私房網站：</h4>
+                <input type="text" id="p5LinkTitle" placeholder="資源名稱 (例如: 網路日文辭典)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+                <input type="text" id="p5LinkUrl" placeholder="網址 (例如: www.jisho.org)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+                <button id="p5AddLinkBtn" style="background:#28a745; color:#fff; border:none; padding:8px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">儲存並引進網站</button>
+            </div>
 
-        if (link) {
-            const readMoreBtn = document.createElement("a");
-            readMoreBtn.id = "modalReadMoreBtn";
-            readMoreBtn.href = link;
-            readMoreBtn.target = "_blank";
-            readMoreBtn.rel = "noopener noreferrer";
-            readMoreBtn.innerText = "🔗 前往原文閱讀";
-            readMoreBtn.style.cssText = `
-                display: inline-block;
-                margin-top: 16px;
-                padding: 8px 18px;
-                background: #3182ce;
-                color: white;
-                border-radius: 20px;
-                text-decoration: none;
-                font-size: 13px;
-                font-weight: bold;
-            `;
-            modalBody.after(readMoreBtn);
-        }
+            <h4 style="margin:0 0 10px 0; color:#4a5568; font-size:14px;">📋 已引進網站 (${userLinks.length})</h4>
+            <div id="linksList" style="display:flex; flex-direction:column; gap:10px;">
+                ${userLinks.map((link, index) => `
+                    <div style="background:#fff; border:1px solid #edf2f7; border-radius:8px; padding:12px 15px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                        <a href="${link.url}" target="_blank" rel="noopener noreferrer" style="text-decoration:none; color:#2b6cb0; font-weight:bold; font-size:15px; flex:1; margin-right:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            🔗 ${link.title}
+                        </a>
+                        <div style="display:flex; gap:6px;">
+                            <button onclick="editLinkFromPage5(${index})" style="background:#ecc94b; color:#744210; border:none; padding:5px 10px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">修改</button>
+                            <button onclick="deleteLinkFromPage5(${index})" style="background:#e53e3e; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">刪除</button>
+                        </div>
+                    </div>
+                `).join('')}
+                ${userLinks.length === 0 ? '<p style="text-align:center; color:#a0aec0; padding:10px; font-size:13px; margin:0;">目前沒有自訂任何網站唷！</p>' : ''}
+            </div>
+        </div>
+    `;
 
-        modal.style.display = "flex";
-        document.body.style.overflow = "hidden";
+    document.getElementById("p5AddLinkBtn").addEventListener("click", addLinkFromPage5);
+}
+
+// ==========================================
+// 7. 管理中心邏輯操作 (CRUD)
+// ==========================================
+function addWordFromPage5() {
+    const textEl = document.getElementById("p5WordInput");
+    const transEl = document.getElementById("p5TransInput");
+    const exEl = document.getElementById("p5ExInput");
+    const catEl = document.getElementById("p5CatInput");
+    if (!textEl || !transEl) return;
+
+    const text = textEl.value.trim();
+    const trans = transEl.value.trim();
+    const example = exEl ? exEl.value.trim() : "";
+    const category = catEl ? catEl.value : "all";
+
+    if (!text || !trans) { alert("核心內容與翻譯為必填欄位！"); return; }
+    if (!userDatabase[currentLang]) userDatabase[currentLang] = [];
+
+    userDatabase[currentLang].push({ text, trans, example, exTrans: "自訂字句", category });
+    saveToStorage();
+    renderPage5ImportCenter();
+}
+
+window.editWordFromPage5 = function (index) {
+    const list = userDatabase[currentLang] || [];
+    if (!list[index]) return;
+    const item = list[index];
+
+    const newText = prompt("1/3 修改外文內容：", item.text);
+    if (newText === null) return;
+    if (!newText.trim()) { alert("核心內容不能為空！"); return; }
+
+    const newTrans = prompt("2/3 修改中文翻譯：", item.trans);
+    if (newTrans === null) return;
+    if (!newTrans.trim()) { alert("翻譯不能為空！"); return; }
+
+    const newEx = prompt("3/3 修改延伸句子/音標提示：", item.example || "");
+    if (newEx === null) return;
+
+    list[index] = { ...item, text: newText.trim(), trans: newTrans.trim(), example: newEx.trim() };
+    saveToStorage();
+    renderPage5ImportCenter();
+}
+
+window.deleteWordFromPage5 = function (index) {
+    const list = userDatabase[currentLang] || [];
+    if (!list[index]) return;
+    if (confirm(`確定要將「${list[index].text}」從字庫中徹底除去嗎？`)) {
+        list.splice(index, 1);
+        saveToStorage();
+        renderPage5ImportCenter();
     }
 }
 
-function closeNewsModal() {
-    const modal = document.getElementById("newsModal");
-    if (modal) {
-        modal.style.display = "none";
-        document.body.style.overflow = "auto";
-        const oldBtn = document.getElementById("modalReadMoreBtn");
-        if (oldBtn) oldBtn.remove();
+function addLinkFromPage5() {
+    const titleInput = document.getElementById("p5LinkTitle");
+    const urlInput = document.getElementById("p5LinkUrl");
+    if (!titleInput || !urlInput) return;
+
+    let title = titleInput.value.trim();
+    let url = urlInput.value.trim();
+
+    if (!title || !url) { alert("請填寫完整的網站標題與連結網址！"); return; }
+    if (!url.startsWith("http://") && !url.startsWith("https://")) { url = "https://" + url; }
+
+    userLinks.push({ title, url });
+    saveLinksToStorage();
+    renderPage5ImportCenter();
+}
+
+window.editLinkFromPage5 = function (index) {
+    const currentLink = userLinks[index];
+    const newTitle = prompt("請調整私房網站名稱：", currentLink.title);
+    if (newTitle === null) return;
+    if (!newTitle.trim()) { alert("標題不能留空！"); return; }
+
+    let newUrl = prompt("請調整私房網站網址：", currentLink.url);
+    if (newUrl === null) return;
+    if (!newUrl.trim()) { alert("網址不能留空！"); return; }
+    if (!newUrl.trim().startsWith("http://") && !newUrl.trim().startsWith("https://")) { newUrl = "https://" + newUrl.trim(); }
+
+    userLinks[index] = { title: newTitle.trim(), url: newUrl.trim() };
+    saveLinksToStorage();
+    renderPage5ImportCenter();
+}
+
+window.deleteLinkFromPage5 = function (index) {
+    if (confirm(`確認除去私房網站：「${userLinks[index].title}」？`)) {
+        userLinks.splice(index, 1);
+        saveLinksToStorage();
+        renderPage5ImportCenter();
     }
 }
 
 // ==========================================
-// 🔄 路由控制
+// 8. 🔄 路由控制中心 (極致乾淨分離)
 // ==========================================
 function navigateToPage(pageNumber) {
     const pages = document.querySelectorAll('.app-page');
@@ -754,262 +790,79 @@ function navigateToPage(pageNumber) {
         else item.classList.remove('active');
     });
 
-    if (pageNumber === 2 || pageNumber === 4) {
-        updateUI();
+    // 🛠️ 核心修改：全新路由徹底分流機制
+    if (pageNumber === 2) {
+        renderCategoryPage(); // 第二頁：純情境選擇看板（含自訂按鈕）
+    } else if (pageNumber === 3) {
+        updateUI();           // 第三頁：專職 5 大特訓練習（依據第2頁選定的情境）
+    } else if (pageNumber === 5) {
+        renderPage5ImportCenter(); // 第五頁：專職渲染增刪改管理中心
+    } else {
+        updateUI();           // 第一、四頁：交由預設引擎渲染
     }
 }
 
 // ==========================================
-// 🔄 網頁事件監聽初始化
+// 9. 🚀 全頁面生命週期初始化事件監聽
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
+    // 重新校正緩存元素
+    mainContent = document.getElementById("mainContent");
+    siteTitle = document.getElementById("siteTitle");
+    langButtons = document.querySelectorAll(".lang-btn");
+    modeButtons = document.querySelectorAll(".mode-btn");
 
-    // ⚠️ 修正 [問題4]：補上語言按鈕點擊事件綁定
+    // 語系切換連動
     langButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             currentLang = btn.getAttribute('data-lang') || btn.dataset.lang || btn.innerText;
             langButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            currentNewsCategory = "international"; // 切換語言時重置新聞分類
-            updateUI();
+
+            const activePage = document.querySelector('.app-page.active');
+            if (activePage && activePage.id === "page5") {
+                renderPage5ImportCenter();
+            } else if (activePage && activePage.id === "page2") {
+                renderCategoryPage();
+            } else {
+                updateUI();
+            }
         });
     });
 
-    // ⚠️ 修正 [問題4]：補上模式按鈕點擊事件綁定
+    // 特訓模式切換（第三頁使用）
     modeButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-            currentMode = btn.getAttribute('data-mode') || modeMapping[Array.from(modeButtons).indexOf(btn)] || "dialogue";
-            modeButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            updateUI();
-        });
-    });
-
-    // ⚠️ 修正 [問題4]：補上情境分類按鈕點擊事件綁定
-    catButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentCat = btn.getAttribute('data-cat') || "all";
-            catButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            updateUI();
-        });
-    });
-
-    // 通用新聞分類頁籤（日、韓、德、西、台語）：切換時自動抓 AI 新聞
-    document.querySelectorAll('#generalNewsTabs .news-tab').forEach(tab => {
-        tab.addEventListener('click', function () {
-            currentNewsCategory = this.getAttribute('data-category') || 'international';
-            this.parentElement.querySelectorAll('.news-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            updateLiveDashboard();
-            fetchAINews(currentLang, currentNewsCategory, null);
-        });
-    });
-
-    // 英文雙層頁籤：地區列或分類列切換時重新抓新聞
-    document.querySelectorAll('#englishNewsControls .news-tab').forEach(tab => {
-        tab.addEventListener('click', function () {
-            const val = this.getAttribute('data-region') || this.getAttribute('data-category') || 'international';
-            currentNewsCategory = val;
-            this.parentElement.querySelectorAll('.news-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            updateLiveDashboard();
-            // 地區 tab 用 region，分類 tab 用 category
-            const isRegion = !!this.getAttribute('data-region');
-            fetchAINews('en', isRegion ? 'international' : val, isRegion ? val : null);
-        });
-    });
-
-    // 法文雙層頁籤：同上
-    document.querySelectorAll('#frenchNewsControls .news-tab').forEach(tab => {
-        tab.addEventListener('click', function () {
-            const val = this.getAttribute('data-region') || this.getAttribute('data-category') || 'international';
-            currentNewsCategory = val;
-            this.parentElement.querySelectorAll('.news-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            updateLiveDashboard();
-            const isRegion = !!this.getAttribute('data-region');
-            fetchAINews('fr', isRegion ? 'international' : val, isRegion ? val : null);
-        });
-    });
-
-    // ==========================================
-    // 更新看板按鈕：隨機刷新天氣、運勢、幸運物，並抓取最新新聞
-    // ==========================================
-    const refreshBtn = document.getElementById("refreshNewsBtn");
-    if (refreshBtn) {
-        refreshBtn.addEventListener("click", () => {
-            refreshBtn.innerText = "⏳ 更新中...";
-            refreshBtn.disabled = true;
-
-            const lang = typeof currentLang !== 'undefined' ? currentLang : 'en';
-
-            if (typeof dashConfig !== 'undefined' && dashConfig[lang]) {
-                const config = dashConfig[lang];
-
-                // ── 1. 隨機天氣（天氣狀況 + 氣溫一起換）──────────────
-                const weatherPool = {
-                    ja: [["☀️ 快晴", 18, 32], ["⛅ 曇り", 14, 26], ["🌧️ 雨", 10, 22], ["🌩️ 雷雨", 12, 20], ["❄️ 雪", 0, 8]],
-                    ko: [["☀️ 맑음", 16, 30], ["⛅ 구름 많음", 12, 24], ["🌧️ 비", 8, 20], ["🌩️ 뇌우", 10, 18], ["❄️ 눈", -2, 6]],
-                    en: [["☀️ Clear", 15, 28], ["⛅ Cloudy", 10, 22], ["🌧️ Rainy", 8, 18], ["⛈️ Stormy", 9, 16], ["❄️ Snowy", -1, 5]],
-                    de: [["☀️ Klar", 12, 25], ["⛅ Bewölkt", 8, 20], ["🌧️ Regen", 6, 16], ["⛈️ Gewitter", 7, 14], ["❄️ Schnee", -2, 4]],
-                    fr: [["☀️ Degagé", 14, 27], ["⛅ Nuageux", 10, 21], ["🌧️ Pluie", 7, 17], ["⛈️ Orage", 8, 15], ["❄️ Neige", -1, 5]],
-                    es: [["☀️ Despejado", 18, 34], ["⛅ Nublado", 14, 26], ["🌧️ Lluvia", 10, 20], ["⛈️ Tormenta", 12, 19], ["❄️ Nieve", 0, 8]],
-                    nan: [["☀️ 出日頭", 22, 35], ["⛅ 半天烏", 18, 28], ["🌧️ 落雨", 16, 24], ["🌩️ 落雷仔雨", 17, 22], ["🌫️ 有霧", 15, 20]]
-                };
-                const pool = weatherPool[lang] || weatherPool["en"];
-                const [condition, minT, maxT] = pool[Math.floor(Math.random() * pool.length)];
-                const temp = Math.floor(Math.random() * (maxT - minT + 1)) + minT;
-                config.weather = `${condition} 🌡️ ${temp}°C`;
-
-                // ── 2. 隨機運勢訊息（每次換一句）────────────────────────
-                const astroMessages = {
-                    ja: [
-                        "🎯 新しい単語を学ぶのに最適な一日です！",
-                        "🌟 積極的に話しかけると良い出会いがあります。",
-                        "📚 今日は読書や学習に集中するのが吉。",
-                        "🎨 クリエイティブなことに挑戦してみましょう。",
-                        "🤝 友人との会話があなたに新しい視点をもたらします。"
-                    ],
-                    ko: [
-                        "🎯 새 단어를 공부하기에 가장 좋은 날입니다!",
-                        "🌟 적극적으로 소통하면 좋은 인연을 만납니다。",
-                        "📚 오늘은 독서와 학습에 집중하는 것이 좋습니다。",
-                        "🎨 창의적인 활동에 도전해 보세요。",
-                        "🤝 친구와의 대화가 새로운 시각을 줄 것입니다。"
-                    ],
-                    en: [
-                        "🎯 Perfect day for expanding your vocabulary!",
-                        "🌟 Reach out to someone new — great connections await.",
-                        "📚 Focus on learning today and you'll surprise yourself.",
-                        "🎨 Creative pursuits will bring unexpected joy.",
-                        "🤝 A conversation with a friend sparks fresh ideas."
-                    ],
-                    de: [
-                        "🎯 Ein perfekter Tag, um neue Vokabeln zu lernen!",
-                        "🌟 Neue Bekanntschaften bringen Glück — sei offen!",
-                        "📚 Heute ist ein guter Tag zum Lesen und Lernen.",
-                        "🎨 Kreative Projekte bringen unerwartete Freude.",
-                        "🤝 Ein Gespräch mit Freunden bringt neue Ideen."
-                    ],
-                    fr: [
-                        "🎯 Une journée parfaite pour apprendre du nouveau vocabulaire !",
-                        "🌟 Allez vers les autres — de belles rencontres vous attendent.",
-                        "📚 Concentrez-vous sur l'apprentissage aujourd'hui.",
-                        "🎨 Les activités créatives vous apporteront de la joie.",
-                        "🤝 Une conversation avec un ami apporte de nouvelles idées."
-                    ],
-                    es: [
-                        "🎯 ¡Un día perfecto para aprender nuevo vocabulario!",
-                        "🌟 Acércate a alguien nuevo — te esperan grandes conexiones.",
-                        "📚 Hoy es un buen día para leer y estudiar.",
-                        "🎨 Las actividades creativas traerán alegría inesperada.",
-                        "🤝 Una conversación con amigos trae ideas frescas."
-                    ],
-                    nan: [
-                        "🎯 今仔日是學新單字尚好嘅時機！",
-                        "🌟 主動去交陪人，會有好緣分。",
-                        "📚 今仔日專心讀冊學習，運氣真好。",
-                        "🎨 做有創意的代誌，會有意外的快樂。",
-                        "🤝 和朋友開講，會得著新的想法。"
-                    ]
-                };
-                const messages = astroMessages[lang] || astroMessages["en"];
-                const randomMsg = messages[Math.floor(Math.random() * messages.length)];
-
-                // ── 3. 隨機幸運物 ───────────────────────────────────────
-                const luckyItems = {
-                    ja: ["ホットコーヒー", "ラッキーペン", "青いノート", "緑のお茶", "お守り", "白いハンカチ"],
-                    ko: ["따뜻한 커피", "행운의 펜", "파란 노트", "녹차", "부적", "흰 손수건"],
-                    en: ["Hot Coffee", "Lucky Pen", "Blue Notebook", "Green Tea", "Lucky Charm", "White Handkerchief"],
-                    de: ["Heißer Kaffee", "Glücksstift", "Blaues Notizbuch", "Grüner Tee", "Glücksbringer", "Weißes Taschentuch"],
-                    fr: ["Café chaud", "Stylo chanceux", "Carnet bleu", "Thé vert", "Porte-bonheur", "Mouchoir blanc"],
-                    es: ["Café caliente", "Bolígrafo de la suerte", "Cuaderno azul", "Té verde", "Amuleto", "Pañuelo blanco"],
-                    nan: ["燒咖啡", "幸運筆", "藍色手冊", "青草茶", "護身符", "白手巾"]
-                };
-                const lItems = luckyItems[lang] || luckyItems["en"];
-                const randomItem = lItems[Math.floor(Math.random() * lItems.length)];
-
-                // ── 4. 組合成新的 astroBody 並寫回 config ───────────────
-                config.astroBody = `${randomMsg}<br>🍀 ${lang === 'ja' ? 'ラッキーアイテム：' :
-                    lang === 'ko' ? '행운의 아이템: ' :
-                        lang === 'de' ? 'Glücksbringer: ' :
-                            lang === 'fr' ? 'Objet chanceux : ' :
-                                lang === 'es' ? 'Objeto de la suerte: ' :
-                                    lang === 'nan' ? '幸運物：' :
-                                        'Lucky Item: '
-                    }<span class='lucky-item'>${randomItem}</span>`;
+            const targetMode = btn.getAttribute("data-mode") || modeMapping[Array.from(modeButtons).indexOf(btn)] || "dialogue";
+            if (typeof modeMapping !== 'undefined' && modeMapping.includes(targetMode)) {
+                currentMode = targetMode;
+                modeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                updateUI();
             }
-
-            // 更新位置、天氣、星座顯示
-            updateLiveDashboard();
-
-            // 抓取最新新聞
-            const region = (lang === 'en' || lang === 'fr') ? currentNewsCategory : null;
-            const category = (lang === 'en' || lang === 'fr') ? 'international' : currentNewsCategory;
-
-            fetchAINews(lang, category, region).finally(() => {
-                refreshBtn.innerText = "🔄 更新看板";
-                refreshBtn.disabled = false;
-            });
         });
-    }
-
-    // 點擊 Modal 背景關閉
-    window.addEventListener("click", (e) => {
-        const modal = document.getElementById("newsModal");
-        if (e.target === modal) closeNewsModal();
     });
 
-    // 前進第二頁按鈕
-    const toPage2Btn = document.getElementById("toPage2Btn");
-    if (toPage2Btn) {
-        toPage2Btn.addEventListener("click", () => {
-            if (typeof navigateToPage === 'function') navigateToPage(2);
+    // 採集靈感庫字卡全域 API (完美整合 userDatabase)
+    window.collectWord = function (text, trans, lang, category) {
+        if (!userDatabase[lang]) userDatabase[lang] = [];
+        const cleanedText = text.trim().toLowerCase();
+        const isExist = userDatabase[lang].some(item => item.text.trim().toLowerCase() === cleanedText);
+
+        if (isExist) { alert("💡 這句單字/句子已經在你的隨身包裡囉！"); return; }
+
+        userDatabase[lang].push({
+            text: text.trim(), trans: trans.trim(), example: "從靈感庫採集", exTrans: "", category: category || "all"
         });
-    }
+        saveToStorage();
 
-    // ⚠️ 修正 [問題3]：addBtn 統一在此宣告，不在全域重複宣告
-    const addBtn = document.getElementById("addBtn");
-    if (addBtn) {
-        addBtn.addEventListener("click", () => {
-            const textEl = document.getElementById("wordInput");
-            const transEl = document.getElementById("transInput");
-            const exEl = document.getElementById("exInput");
-            const exTransEl = document.getElementById("exTransInput");
-            const catEl = document.getElementById("categorySelect");
+        alert(`🎉 成功加入隨身包！\n可以去管理中心或該語系字卡查看囉！`);
 
-            if (!textEl || !transEl) return;
+        const activePage = document.querySelector('.app-page.active');
+        if (activePage && activePage.id === "page5") renderPage5ImportCenter();
+        else updateUI();
+    };
 
-            const text = textEl.value.trim();
-            const trans = transEl.value.trim();
-            const example = exEl ? exEl.value.trim() : "";
-            const exTrans = exTransEl ? exTransEl.value.trim() : "";
-            const category = catEl ? catEl.value : "general";
-
-            if (!text || !trans) { alert("內容與翻譯不能為空！"); return; }
-
-            if (typeof userDatabase !== 'undefined' && typeof currentLang !== 'undefined') {
-                if (!userDatabase[currentLang]) userDatabase[currentLang] = [];
-                userDatabase[currentLang].push({ text, trans, example, exTrans, category });
-                if (typeof saveToStorage === 'function') saveToStorage();
-            }
-
-            textEl.value = "";
-            transEl.value = "";
-            alert("🎉 成功引進新詞彙！");
-            if (typeof updateUI === 'function') updateUI();
-        });
-    }
-
-    // 星座下拉選單變更
-    const astroSelect = document.getElementById("astroSelect");
-    if (astroSelect) {
-        astroSelect.addEventListener("change", () => updateHoroscope());
-    }
-
-    // 🚀 初始化
-    if (typeof navigateToPage === 'function') navigateToPage(1);
-    if (typeof updateUI === 'function') updateUI();
-    if (typeof updateLiveDashboard === 'function') updateLiveDashboard();
+    // 初始化頁面跳轉至第一頁
+    navigateToPage(1);
 });
