@@ -108,6 +108,9 @@ let currentConjIndex = 0;
 let currentClozeIndex = 0;
 let currentNewsRegion = "";
 
+// ☁️ 跨裝置同步碼（存在 localStorage，兩台裝置輸入同一組碼即可互通）
+let syncCode = localStorage.getItem("multiLangSyncCode_v1") || "";
+
 // 儲存動態情境清單 (預設含四大情境)
 let categories = JSON.parse(localStorage.getItem("multiLangCategories_v8")) || [
     { id: "all", name: "全部情境展示", icon: "🌐" },
@@ -610,7 +613,20 @@ function renderPage5ImportCenter() {
 
     page5Container.innerHTML = `
         <h2 style="margin-bottom: 20px; color: #2d3748; text-align: center;">動態引進與管理中心</h2>
-        
+
+        <div class="import-card" style="background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05); margin-bottom:25px; border: 2px solid #667eea;">
+            <h3 style="margin:0 0 12px 0; color:#4c51bf; font-size:18px;">☁️ 跨裝置同步</h3>
+            <p style="font-size:13px; color:#718096; margin-bottom:12px; line-height:1.6;">
+                在電腦和手機都輸入<b>同一組同步碼</b>（自己取一組不容易被猜到的碼即可），就能把資料互相上傳/下載，達到跨裝置同步的效果。
+            </p>
+            <input type="text" id="syncCodeInput" placeholder="輸入你的專屬同步碼" value="${syncCode.replace(/"/g, '&quot;')}" style="padding:10px 12px; border:1px solid #c3bffd; border-radius:6px; font-size:14px; width:100%; box-sizing:border-box; margin-bottom:10px;">
+            <div style="display:flex; gap:10px;">
+                <button id="syncPushBtn" style="flex:1; background:#667eea; color:#fff; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">⬆️ 上傳到雲端</button>
+                <button id="syncPullBtn" style="flex:1; background:#48bb78; color:#fff; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">⬇️ 從雲端下載</button>
+            </div>
+            <div id="syncStatusText" style="margin-top:10px; font-size:12px; color:#a0aec0; text-align:center;"></div>
+        </div>
+
         <div class="import-card" style="background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05); margin-bottom:25px; border: 1px solid #e2e8f0;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                 <h3 style="margin:0; color:#2b6cb0; font-size:18px;">📝 字句庫管理 (${activeLangName})</h3>
@@ -678,6 +694,27 @@ function renderPage5ImportCenter() {
     `;
 
     document.getElementById("p5AddLinkBtn").addEventListener("click", addLinkFromPage5);
+
+    // ☁️ 同步按鈕事件綁定
+    const syncCodeInputEl = document.getElementById("syncCodeInput");
+    const syncPushBtnEl = document.getElementById("syncPushBtn");
+    const syncPullBtnEl = document.getElementById("syncPullBtn");
+
+    if (syncCodeInputEl) {
+        syncCodeInputEl.addEventListener("change", (e) => saveSyncCode(e.target.value));
+    }
+    if (syncPushBtnEl) {
+        syncPushBtnEl.addEventListener("click", () => {
+            saveSyncCode(document.getElementById("syncCodeInput").value);
+            pushToCloud();
+        });
+    }
+    if (syncPullBtnEl) {
+        syncPullBtnEl.addEventListener("click", () => {
+            saveSyncCode(document.getElementById("syncCodeInput").value);
+            pullFromCloud();
+        });
+    }
 }
 
 // ==========================================
@@ -771,6 +808,88 @@ window.deleteLinkFromPage5 = function (index) {
         userLinks.splice(index, 1);
         saveLinksToStorage();
         renderPage5ImportCenter();
+    }
+}
+
+// ==========================================
+// 7.5 ☁️ 跨裝置同步（透過 /api/sync 與 Upstash Redis）
+// ==========================================
+function saveSyncCode(code) {
+    syncCode = (code || "").trim();
+    localStorage.setItem("multiLangSyncCode_v1", syncCode);
+}
+
+function getFullSyncPayload() {
+    return {
+        userDatabase,
+        userLinks,
+        categories
+    };
+}
+
+function applySyncPayload(payload) {
+    if (payload.userDatabase) userDatabase = payload.userDatabase;
+    if (payload.userLinks) userLinks = payload.userLinks;
+    if (payload.categories) categories = payload.categories;
+    saveToStorage();
+    saveLinksToStorage();
+    saveCategoriesToStorage();
+}
+
+function updateSyncStatusUI(text) {
+    const statusEl = document.getElementById("syncStatusText");
+    if (statusEl) statusEl.innerText = text;
+}
+
+async function pushToCloud(showAlert = true) {
+    if (!syncCode) { alert("請先輸入同步碼！"); return; }
+    updateSyncStatusUI("⏳ 上傳中...");
+    try {
+        const res = await fetch("/api/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: syncCode, data: getFullSyncPayload() })
+        });
+        const result = await res.json();
+        if (result.success) {
+            if (showAlert) alert("☁️ 已成功上傳到雲端！");
+            updateSyncStatusUI("✅ 已上傳・" + new Date().toLocaleString());
+        } else {
+            updateSyncStatusUI("❌ 上傳失敗");
+            alert("上傳失敗：" + (result.error || "未知錯誤"));
+        }
+    } catch (err) {
+        updateSyncStatusUI("❌ 上傳失敗");
+        alert("上傳失敗，請檢查網路連線：" + err.message);
+    }
+}
+
+async function pullFromCloud() {
+    if (!syncCode) { alert("請先輸入同步碼！"); return; }
+    updateSyncStatusUI("⏳ 下載中...");
+    try {
+        const res = await fetch(`/api/sync?code=${encodeURIComponent(syncCode)}`);
+        const result = await res.json();
+        if (!result.found) {
+            updateSyncStatusUI("⚠️ 雲端尚無資料");
+            alert("雲端目前還沒有這個同步碼的資料，請先在另一台裝置上傳一次！");
+            return;
+        }
+        if (confirm("確定要用雲端的資料覆蓋這台裝置目前的資料嗎？（本機目前的資料會被取代）")) {
+            applySyncPayload(result.data);
+            updateSyncStatusUI("✅ 已下載・" + new Date().toLocaleString());
+            alert("✅ 已從雲端下載並套用資料！");
+
+            const activePage = document.querySelector('.app-page.active');
+            if (activePage && activePage.id === "page5") renderPage5ImportCenter();
+            else if (activePage && activePage.id === "page2") renderCategoryPage();
+            else updateUI();
+        } else {
+            updateSyncStatusUI("");
+        }
+    } catch (err) {
+        updateSyncStatusUI("❌ 下載失敗");
+        alert("下載失敗，請檢查網路連線：" + err.message);
     }
 }
 
