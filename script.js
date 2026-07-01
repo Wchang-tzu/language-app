@@ -93,9 +93,34 @@ let currentKanaQuiz = null;
 // ==========================================
 let userDatabase = JSON.parse(localStorage.getItem("multiLangDynamicDB_v8")) || defaultDatabase;
 
+// 🌐 語言中繼資料：預設 7 種語言 + 使用者自訂新增的語言
+const defaultLangMeta = [
+    { code: "ja", name: "日文", icon: "🇯🇵", speechLang: "ja-JP" },
+    { code: "ko", name: "韓文", icon: "🇰🇷", speechLang: "ko-KR" },
+    { code: "en", name: "英文", icon: "🇺🇸", speechLang: "en-US" },
+    { code: "de", name: "德文", icon: "🇩🇪", speechLang: "de-DE" },
+    { code: "fr", name: "法文", icon: "🇫🇷", speechLang: "fr-FR" },
+    { code: "es", name: "西文", icon: "🇪🇸", speechLang: "es-ES" },
+    { code: "nan", name: "台語", icon: "🇹🇼", speechLang: "" }
+];
+
+let customLanguages = JSON.parse(localStorage.getItem("multiLangCustomLangs_v1")) || [];
+
+function saveCustomLanguages() {
+    localStorage.setItem("multiLangCustomLangs_v1", JSON.stringify(customLanguages));
+}
+
+function getAllLanguages() {
+    return [...defaultLangMeta, ...customLanguages];
+}
+
+function getLangMeta(code) {
+    return getAllLanguages().find(l => l.code === code) || { code, name: code, icon: "🌐", speechLang: "" };
+}
+
 let userLinks = JSON.parse(localStorage.getItem("multiLangLinks_v8")) || [
-    { title: "NHK Web Easy (日文新聞)", url: "https://www3.nhk.or.jp/news/easy/" },
-    { title: "Duolingo 多鄰國", url: "https://www.duolingo.com/" }
+    { title: "NHK Web Easy (日文新聞)", url: "https://www3.nhk.or.jp/news/easy/", type: "news" },
+    { title: "Duolingo 多鄰國", url: "https://www.duolingo.com/", type: "other" }
 ];
 
 let currentLang = "ja";
@@ -143,11 +168,11 @@ function saveCategoriesToStorage() {
 // ==========================================
 function speak(text, lang) {
     if ('speechSynthesis' in window) {
-        if (lang === "nan") return;
+        const meta = getLangMeta(lang);
+        if (!meta.speechLang) return; // 沒有設定語音代碼的語言（例如台語、或未填寫的自訂語言）就不發聲
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
-        const langMap = { ja: "ja-JP", ko: "ko-KR", en: "en-US", de: "de-DE", fr: "fr-FR", es: "es-ES" };
-        utterance.lang = langMap[lang] || "en-US";
+        utterance.lang = meta.speechLang;
         window.speechSynthesis.speak(utterance);
     }
 }
@@ -171,12 +196,96 @@ function buildQuizData() {
     }
     let finalOptions = wrongOptions.slice(0, 3); finalOptions.push(currentItem.trans);
     finalOptions.sort(() => Math.random() - 0.5);
-    return { audioText: currentItem.text, answer: currentItem.trans, options: finalOptions };
+    return { item: currentItem, audioText: currentItem.text, answer: currentItem.trans, options: finalOptions };
+}
+
+// 🛠️ 快速編輯／刪除（讓字卡認識、聽力測驗、智慧拼寫都能直接在原地修改或刪除，不用跑去第五頁）
+// 用「物件參照」在 userDatabase[currentLang] 裡找到正確位置，就算目前畫面有依情境過濾也不會找錯筆
+function editWordItem(item) {
+    const list = userDatabase[currentLang] || [];
+    const idx = list.indexOf(item);
+    if (idx === -1) { alert("找不到這筆資料，可能剛好被更新過，麻煩到第五頁管理中心操作。"); return; }
+
+    const newText = prompt("1/3 修改外文內容：", item.text);
+    if (newText === null) return;
+    if (!newText.trim()) { alert("核心內容不能為空！"); return; }
+
+    const newTrans = prompt("2/3 修改中文翻譯：", item.trans);
+    if (newTrans === null) return;
+    if (!newTrans.trim()) { alert("翻譯不能為空！"); return; }
+
+    const newEx = prompt("3/3 修改延伸句子/音標提示：", item.example || "");
+    if (newEx === null) return;
+
+    list[idx] = { ...item, text: newText.trim(), trans: newTrans.trim(), example: newEx.trim() };
+    saveToStorage();
+    updateUI();
+}
+
+function deleteWordItem(item) {
+    const list = userDatabase[currentLang] || [];
+    const idx = list.indexOf(item);
+    if (idx === -1) { alert("找不到這筆資料，可能剛好被更新過，麻煩到第五頁管理中心操作。"); return; }
+
+    if (confirm(`確定要將「${item.text}」從字庫中徹底刪除嗎？`)) {
+        list.splice(idx, 1);
+        saveToStorage();
+        updateUI();
+    }
 }
 
 // ==========================================
 // 4. 各頁面與特訓模式渲染引擎
 // ==========================================
+
+// 🌐 第一頁：語系選單動態渲染（預設語言 + 使用者自訂語言 + 新增按鈕）
+function renderLangGrid() {
+    const grid = document.getElementById("langGrid");
+    if (!grid) return;
+
+    const allLangs = getAllLanguages();
+
+    grid.innerHTML = allLangs.map(lang => `
+        <button class="lang-btn ${lang.code === currentLang ? 'active' : ''}" onclick="selectLanguage('${lang.code}')">${lang.icon} ${lang.name}</button>
+    `).join('') + `
+        <button class="lang-btn" onclick="addNewLanguageFlow()" style="border-style:dashed; color:#718096;">➕ 新增語言</button>
+    `;
+}
+
+// 點擊語系按鈕：切換語言並重新渲染目前所在的頁面
+window.selectLanguage = function (code) {
+    currentLang = code;
+    renderLangGrid();
+
+    const activePage = document.querySelector('.app-page.active');
+    if (activePage && activePage.id === "page5") renderPage5ImportCenter();
+    else if (activePage && activePage.id === "page2") renderCategoryPage();
+    else updateUI();
+};
+
+// 新增自訂語言的彈窗流程
+window.addNewLanguageFlow = function () {
+    const name = prompt("請輸入新語言名稱（例如：泰文、越南文、義大利文）：");
+    if (!name || !name.trim()) return;
+
+    const icon = prompt("請為這個語言選一個代表國旗/圖標的 Emoji（例如：🇹🇭、🇻🇳、🇮🇹）：", "🌐") || "🌐";
+
+    const speechLang = prompt(
+        "（選填）如果想開啟語音朗讀功能，請輸入該語言的語音代碼：\n例如泰文 th-TH、越南文 vi-VN、義大利文 it-IT。\n不確定可以留空——留空的話這個語言就不會有朗讀功能，但其他功能都正常。",
+        ""
+    ) || "";
+
+    const code = "custom_" + Date.now();
+    customLanguages.push({ code, name: name.trim(), icon, speechLang: speechLang.trim() });
+    saveCustomLanguages();
+
+    if (!userDatabase[code]) userDatabase[code] = [];
+    saveToStorage();
+
+    currentLang = code;
+    renderLangGrid();
+    alert(`🎉 已新增「${name.trim()}」！\n可以到第五頁「引進庫」開始新增這個語言的字句囉！`);
+};
 
 // 💡 核心修改：第二頁（情境選擇頁）專屬渲染函式
 function renderCategoryPage() {
@@ -225,8 +334,7 @@ window.addNewCustomCategory = function () {
 
 // 💡 第三頁（特訓模式切換與更新）
 function updateUI() {
-    const titleMap = { ja: "🌍 旅遊日文隨身包", ko: "🌍 旅遊韓文隨身包", en: "🌍 旅遊英文隨身包", de: "🌍 旅遊德文隨身包", fr: "🌍 旅遊法文隨身包", es: "🌍 旅遊西文隨身包", nan: "🌍 旅遊台語隨身包" };
-    if (siteTitle) siteTitle.innerText = titleMap[currentLang] || "🌍 旅遊多語言隨身包";
+    if (siteTitle) siteTitle.innerText = `🌍 旅遊${getLangMeta(currentLang).name}隨身包`;
 
     // 重新抓取容器，維持 SPA 特性
     mainContent = document.getElementById("mainContent");
@@ -247,6 +355,7 @@ function updateUI() {
 
     // 同步重新整理第四頁看板（如果存在的話）
     renderNewsLinks();
+    renderMyLinks();
 }
 
 function renderClozeMode() {
@@ -286,6 +395,10 @@ function renderClozeMode() {
             <input type="text" id="clozeInput" class="cloze-input-field" placeholder="請在此輸入挖空處的正確外文" autocomplete="off">
             <button id="clozeSubmitBtn" class="submit-answer-btn">送出檢查</button>
             <p id="clozeFeedback" style="margin-top:20px; font-weight:bold; font-size:18px;"></p>
+            <div style="display:flex; gap:8px; justify-content:center; margin-top:15px;">
+                <button id="clozeEditBtn" style="background:#ecc94b; color:#744210; border:none; padding:6px 14px; border-radius:6px; font-size:13px; cursor:pointer; font-weight:bold;">✏️ 編輯這句</button>
+                <button id="clozeDeleteBtn" style="background:#e53e3e; color:#fff; border:none; padding:6px 14px; border-radius:6px; font-size:13px; cursor:pointer; font-weight:bold;">🗑️ 刪除這句</button>
+            </div>
         </div>`;
 
     const inputField = document.getElementById("clozeInput");
@@ -295,6 +408,8 @@ function renderClozeMode() {
         document.getElementById("clozeSubmitBtn").addEventListener("click", checkAns);
         inputField.addEventListener("keypress", (e) => { if (e.key === "Enter") checkAns(); });
     }
+    document.getElementById("clozeEditBtn").addEventListener("click", () => editWordItem(currentItem));
+    document.getElementById("clozeDeleteBtn").addEventListener("click", () => deleteWordItem(currentItem));
 
     function checkAns() {
         if (inputField.value.trim().toLowerCase() === answerSegment.trim().toLowerCase()) {
@@ -363,7 +478,24 @@ function renderDialogueMode() {
         btn.innerHTML = "🔊";
         btn.addEventListener("click", (e) => { e.stopPropagation(); speak(item.text, currentLang); });
 
+        const editBtn = document.createElement("button");
+        editBtn.className = "audio-btn";
+        editBtn.style.background = "#ecc94b";
+        editBtn.style.color = "#744210";
+        editBtn.innerHTML = "✏️";
+        editBtn.title = "編輯這句";
+        editBtn.addEventListener("click", (e) => { e.stopPropagation(); editWordItem(item); });
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "audio-btn";
+        deleteBtn.style.background = "#e53e3e";
+        deleteBtn.innerHTML = "🗑️";
+        deleteBtn.title = "刪除這句";
+        deleteBtn.addEventListener("click", (e) => { e.stopPropagation(); deleteWordItem(item); });
+
         header.appendChild(btn);
+        header.appendChild(editBtn);
+        header.appendChild(deleteBtn);
         card.appendChild(header);
 
         const ex = document.createElement("div");
@@ -381,6 +513,8 @@ function renderDialogueMode() {
                 ex.innerText = isFlip ? `🤝 翻譯: ${item.exTrans || '—'}` : (item.example ? `💡 延伸: ${item.example}` : "（無延伸句）");
             }
             btn.style.display = isFlip ? "none" : "inline-flex";
+            editBtn.style.display = isFlip ? "none" : "inline-flex";
+            deleteBtn.style.display = isFlip ? "none" : "inline-flex";
         });
         mainContent.appendChild(card);
     });
@@ -428,9 +562,15 @@ function renderListeningMode() {
             <button class="play-quiz-btn" id="quizAudioBtn">📢 播放題目語音</button>
             <div class="options-grid" id="optionsGrid"></div>
             <p id="quizFeedback" style="margin-top:15px; font-weight:bold;"></p>
+            <div style="display:flex; gap:8px; justify-content:center; margin-top:15px;">
+                <button id="quizEditBtn" style="background:#ecc94b; color:#744210; border:none; padding:6px 14px; border-radius:6px; font-size:13px; cursor:pointer; font-weight:bold;">✏️ 編輯這題</button>
+                <button id="quizDeleteBtn" style="background:#e53e3e; color:#fff; border:none; padding:6px 14px; border-radius:6px; font-size:13px; cursor:pointer; font-weight:bold;">🗑️ 刪除這題</button>
+            </div>
         </div>`;
 
     document.getElementById("quizAudioBtn").addEventListener("click", () => speak(quizData.audioText, currentLang));
+    document.getElementById("quizEditBtn").addEventListener("click", () => editWordItem(quizData.item));
+    document.getElementById("quizDeleteBtn").addEventListener("click", () => deleteWordItem(quizData.item));
 
     const grid = document.getElementById("optionsGrid");
     const feedback = document.getElementById("quizFeedback");
@@ -600,6 +740,49 @@ function displayLinks(linksArray) {
     });
 }
 
+// 🌟 看板（第四頁）只顯示引進庫裡標記為「新聞網站」的私房連結
+function renderMyLinks() {
+    const container = document.getElementById("myLinksList");
+    if (!container) return;
+    container.innerHTML = "";
+
+    const newsOnly = userLinks.filter(link => link.type === "news");
+
+    if (newsOnly.length === 0) {
+        container.innerHTML = "<li style='list-style:none; color:#a0aec0; text-align:center; padding: 15px; font-size:13px;'>還沒有加入任何私房新聞網站，可以到「引進庫」新增，記得類型選「📰 新聞網站」唷！</li>";
+        return;
+    }
+
+    newsOnly.forEach((site) => {
+        const index = userLinks.indexOf(site);
+        const li = document.createElement("li");
+        li.style.listStyle = "none";
+        li.style.display = "flex";
+        li.style.alignItems = "center";
+        li.style.gap = "8px";
+        li.style.marginBottom = "12px";
+
+        const a = document.createElement("a");
+        a.href = site.url;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.style.cssText = "flex:1; display:block; background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; text-decoration:none; color:#2d3748; box-shadow:0 2px 4px rgba(0,0,0,0.02); min-width:0;";
+        a.innerHTML = `
+            <div style="font-size:16px; font-weight:bold; color:#805ad5; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">🔗 ${site.title}</div>
+            <div style="font-size:12px; color:#718096; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${site.url}</div>`;
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.innerHTML = "🗑️";
+        deleteBtn.title = "刪除這個網站";
+        deleteBtn.style.cssText = "background:#e53e3e; color:#fff; border:none; border-radius:8px; padding:10px 12px; cursor:pointer; flex-shrink:0;";
+        deleteBtn.addEventListener("click", () => deleteLinkFromPage5(index));
+
+        li.appendChild(a);
+        li.appendChild(deleteBtn);
+        container.appendChild(li);
+    });
+}
+
 // ==========================================
 // 6. 第五頁：🛠️ 引進與全功能管理中心 (CRUD)
 // ==========================================
@@ -607,8 +790,7 @@ function renderPage5ImportCenter() {
     const page5Container = document.getElementById("page5");
     if (!page5Container) return;
 
-    const langNames = { ja: '日語', ko: '韓語', en: '英語', de: '德語', fr: '法語', es: '西語', nan: '台語' };
-    const activeLangName = langNames[currentLang] || currentLang;
+    const activeLangName = getLangMeta(currentLang).name;
     const currentLangWords = userDatabase[currentLang] || [];
 
     page5Container.innerHTML = `
@@ -672,6 +854,10 @@ function renderPage5ImportCenter() {
                 <h4 style="margin:0; color:#4a5568; font-size:13px;">➕ 新增私房網站：</h4>
                 <input type="text" id="p5LinkTitle" placeholder="資源名稱 (例如: 網路日文辭典)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
                 <input type="text" id="p5LinkUrl" placeholder="網址 (例如: www.jisho.org)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+                <select id="p5LinkType" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+                    <option value="news">📰 新聞網站（會同步顯示在「看板」）</option>
+                    <option value="other">📚 其他學習網站（只顯示在引進庫）</option>
+                </select>
                 <button id="p5AddLinkBtn" style="background:#28a745; color:#fff; border:none; padding:8px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">儲存並引進網站</button>
             </div>
 
@@ -679,10 +865,10 @@ function renderPage5ImportCenter() {
             <div id="linksList" style="display:flex; flex-direction:column; gap:10px;">
                 ${userLinks.map((link, index) => `
                     <div style="background:#fff; border:1px solid #edf2f7; border-radius:8px; padding:12px 15px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
-                        <a href="${link.url}" target="_blank" rel="noopener noreferrer" style="text-decoration:none; color:#2b6cb0; font-weight:bold; font-size:15px; flex:1; margin-right:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                            🔗 ${link.title}
+                        <a href="${link.url}" target="_blank" rel="noopener noreferrer" style="text-decoration:none; color:#2b6cb0; font-weight:bold; font-size:15px; flex:1; margin-right:10px; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            ${link.type === "news" ? "📰" : "📚"} ${link.title}
                         </a>
-                        <div style="display:flex; gap:6px;">
+                        <div style="display:flex; gap:6px; flex-shrink:0;">
                             <button onclick="editLinkFromPage5(${index})" style="background:#ecc94b; color:#744210; border:none; padding:5px 10px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">修改</button>
                             <button onclick="deleteLinkFromPage5(${index})" style="background:#e53e3e; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">刪除</button>
                         </div>
@@ -774,33 +960,42 @@ window.deleteWordFromPage5 = function (index) {
 function addLinkFromPage5() {
     const titleInput = document.getElementById("p5LinkTitle");
     const urlInput = document.getElementById("p5LinkUrl");
+    const typeInput = document.getElementById("p5LinkType");
     if (!titleInput || !urlInput) return;
 
     let title = titleInput.value.trim();
     let url = urlInput.value.trim();
+    let type = typeInput ? typeInput.value : "other";
 
     if (!title || !url) { alert("請填寫完整的網站標題與連結網址！"); return; }
     if (!url.startsWith("http://") && !url.startsWith("https://")) { url = "https://" + url; }
 
-    userLinks.push({ title, url });
+    userLinks.push({ title, url, type });
     saveLinksToStorage();
     renderPage5ImportCenter();
+    renderMyLinks();
 }
 
 window.editLinkFromPage5 = function (index) {
     const currentLink = userLinks[index];
-    const newTitle = prompt("請調整私房網站名稱：", currentLink.title);
+    const newTitle = prompt("1/3 請調整私房網站名稱：", currentLink.title);
     if (newTitle === null) return;
     if (!newTitle.trim()) { alert("標題不能留空！"); return; }
 
-    let newUrl = prompt("請調整私房網站網址：", currentLink.url);
+    let newUrl = prompt("2/3 請調整私房網站網址：", currentLink.url);
     if (newUrl === null) return;
     if (!newUrl.trim()) { alert("網址不能留空！"); return; }
     if (!newUrl.trim().startsWith("http://") && !newUrl.trim().startsWith("https://")) { newUrl = "https://" + newUrl.trim(); }
 
-    userLinks[index] = { title: newTitle.trim(), url: newUrl.trim() };
+    const currentType = currentLink.type === "news" ? "1" : "2";
+    const typeInput = prompt("3/3 這是哪種網站？請輸入 1 或 2：\n1 = 📰 新聞網站（會同步顯示在看板）\n2 = 📚 其他學習網站（只顯示在引進庫）", currentType);
+    if (typeInput === null) return;
+    const newType = typeInput.trim() === "1" ? "news" : "other";
+
+    userLinks[index] = { title: newTitle.trim(), url: newUrl.trim(), type: newType };
     saveLinksToStorage();
     renderPage5ImportCenter();
+    renderMyLinks();
 }
 
 window.deleteLinkFromPage5 = function (index) {
@@ -808,6 +1003,7 @@ window.deleteLinkFromPage5 = function (index) {
         userLinks.splice(index, 1);
         saveLinksToStorage();
         renderPage5ImportCenter();
+        renderMyLinks();
     }
 }
 
@@ -931,23 +1127,8 @@ document.addEventListener("DOMContentLoaded", () => {
     langButtons = document.querySelectorAll(".lang-btn");
     modeButtons = document.querySelectorAll(".mode-btn");
 
-    // 語系切換連動
-    langButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentLang = btn.getAttribute('data-lang') || btn.dataset.lang || btn.innerText;
-            langButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            const activePage = document.querySelector('.app-page.active');
-            if (activePage && activePage.id === "page5") {
-                renderPage5ImportCenter();
-            } else if (activePage && activePage.id === "page2") {
-                renderCategoryPage();
-            } else {
-                updateUI();
-            }
-        });
-    });
+    // 🌐 語系選單改為動態渲染（含使用者自訂新增的語言）
+    renderLangGrid();
 
     // 特訓模式切換（第三頁使用）
     modeButtons.forEach(btn => {

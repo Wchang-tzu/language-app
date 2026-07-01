@@ -16,15 +16,7 @@
         <!-- 【第一頁：語系】 -->
         <div id="page1" class="app-page active">
             <h3 class="page-title">🎯 請選擇你想學習的語言</h3>
-            <div class="lang-grid">
-                <button class="lang-btn active" data-lang="ja">🇯🇵 日文</button>
-                <button class="lang-btn" data-lang="ko">🇰🇷 韓文</button>
-                <button class="lang-btn" data-lang="en">🇺🇸 英文</button>
-                <button class="lang-btn" data-lang="de">🇩🇪 德文</button>
-                <button class="lang-btn" data-lang="fr">🇫🇷 法文</button>
-                <button class="lang-btn" data-lang="es">🇪🇸 西文</button>
-                <button class="lang-btn" data-lang="nan">🇹🇼 台語</button>
-            </div>
+            <div id="langGrid" class="lang-grid"></div>
             <div style="text-align: center; margin-top: 30px;">
                 <!-- 點擊前往第二頁（情境頁） -->
                 <button id="toPage2Btn" class="btn-primary" onclick="navigateToPage(2)">選好了，前往情境 ➡️</button>
@@ -63,6 +55,16 @@
 
                 <div class="dashboard-news">
                     <ul id="newsLinkList" class="news-link-grid"></ul>
+                </div>
+            </div>
+
+            <div class="live-dashboard" style="margin-top: 15px; border: 2px solid #d6bcfa;">
+                <div class="dashboard-header" style="color: #805ad5;">
+                    <span>🌟 我的私房新聞網站</span>
+                    <span style="font-size: 13px; color: #718096;">在「引進庫」新增，類型選 📰 新聞網站</span>
+                </div>
+                <div class="dashboard-news">
+                    <ul id="myLinksList" class="news-link-grid"></ul>
                 </div>
             </div>
         </div>
