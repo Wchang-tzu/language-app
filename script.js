@@ -34,13 +34,13 @@ const kanaData = [
     { hiragana: 'き', katakana: 'キ', romaji: 'ki' }, { hiragana: 'く', katakana: 'ク', romaji: 'ku' },
     { hiragana: 'け', katakana: 'ケ', romaji: 'ke' }, { hiragana: 'こ', katakana: 'コ', romaji: 'ko' },
     { hiragana: 'さ', katakana: 'サ', romaji: 'sa' }, { hiragana: 'し', katakana: 'シ', romaji: 'shi' },
-    { hiragana: 'す', katakana: 'ス', romaji: 'su' }, { hiragana: 'せ', katakana: 'ケ', romaji: 'se' },
+    { hiragana: 'す', katakana: 'ス', romaji: 'su' }, { hiragana: 'せ', katakana: 'セ', romaji: 'se' },
     { hiragana: 'そ', katakana: 'ソ', romaji: 'so' }, { hiragana: 'た', katakana: 'タ', romaji: 'ta' },
     { hiragana: 'ち', katakana: 'チ', romaji: 'chi' }, { hiragana: 'つ', katakana: 'ツ', romaji: 'tsu' },
     { hiragana: 'て', katakana: 'テ', romaji: 'te' }, { hiragana: 'と', katakana: 'ト', romaji: 'to' },
     { hiragana: 'な', katakana: 'ナ', romaji: 'na' }, { hiragana: 'に', katakana: 'ニ', romaji: 'ni' },
     { hiragana: 'ぬ', katakana: 'ヌ', romaji: 'nu' }, { hiragana: 'ね', katakana: 'ネ', romaji: 'ne' },
-    { hiragana: 'ノ', katakana: 'ノ', romaji: 'no' }, { hiragana: 'は', katakana: 'ハ', romaji: 'ha' },
+    { hiragana: 'の', katakana: 'ノ', romaji: 'no' }, { hiragana: 'は', katakana: 'ハ', romaji: 'ha' },
     { hiragana: 'ひ', katakana: 'ヒ', romaji: 'hi' }, { hiragana: 'ふ', katakana: 'フ', romaji: 'fu' },
     { hiragana: 'へ', katakana: 'ヘ', romaji: 'he' }, { hiragana: 'ほ', katakana: 'ホ', romaji: 'ho' },
     { hiragana: 'ま', katakana: 'マ', romaji: 'ma' }, { hiragana: 'み', katakana: 'ミ', romaji: 'mi' },
@@ -58,11 +58,11 @@ const dakuon = [
     { hiragana: "ご", katakana: "ゴ", romaji: "go" }, { hiragana: "ざ", katakana: "ザ", romaji: "za" },
     { hiragana: "じ", katakana: "ジ", romaji: "ji" }, { hiragana: "ず", katakana: "ズ", romaji: "zu" },
     { hiragana: "ぜ", katakana: "ゼ", romaji: "ze" }, { hiragana: "ぞ", katakana: "ゾ", romaji: "zo" },
-    { hiragana: "だ", katakana: "打", romaji: "da" }, { hiragana: "ぢ", katakana: "ヂ", romaji: "ji" },
-    { hiragana: "づ", katakana: "ヅ", romaji: "zu" }, { hiragana: "で", katakana: "文", romaji: "de" },
+    { hiragana: "だ", katakana: "ダ", romaji: "da" }, { hiragana: "ぢ", katakana: "ヂ", romaji: "ji" },
+    { hiragana: "づ", katakana: "ヅ", romaji: "zu" }, { hiragana: "で", katakana: "デ", romaji: "de" },
     { hiragana: "ど", katakana: "ド", romaji: "do" }, { hiragana: "ば", katakana: "バ", romaji: "ba" },
     { hiragana: "び", katakana: "ビ", romaji: "bi" }, { hiragana: "ぶ", katakana: "ブ", romaji: "bu" },
-    { hiragana: "べ", katakana: "ベ", romaji: "be" }, { hiragana: "ぼ", katakana: "決", romaji: "bo" }
+    { hiragana: "べ", katakana: "ベ", romaji: "be" }, { hiragana: "ぼ", katakana: "ボ", romaji: "bo" }
 ];
 const handakuon = [
     { hiragana: "ぱ", katakana: "パ", romaji: "pa" }, { hiragana: "ぴ", katakana: "ピ", romaji: "pi" },
@@ -73,11 +73,11 @@ const specialKana = [
     { hiragana: "きゃ", katakana: "キャ", romaji: "kya" }, { hiragana: "きゅ", katakana: "キュ", romaji: "kyu" }, { hiragana: "きょ", katakana: "キョ", romaji: "kyo" },
     { hiragana: "しゃ", katakana: "シャ", romaji: "sha" }, { hiragana: "しゅ", katakana: "シュ", romaji: "shu" }, { hiragana: "しょ", katakana: "ショ", romaji: "sho" },
     { hiragana: "ちゃ", katakana: "チャ", romaji: "cha" }, { hiragana: "ちゅ", katakana: "チュ", romaji: "chu" }, { hiragana: "ちょ", katakana: "チョ", romaji: "cho" },
-    { hiragana: "にゃ", katakana: "ニャ", romaji: "nya" }, { hiragana: "ni_u", katakana: "ニュ", romaji: "nyu" }, { hiragana: "にょ", katakana: "ニョ", romaji: "nyo" },
+    { hiragana: "にゃ", katakana: "ニャ", romaji: "nya" }, { hiragana: "にゅ", katakana: "ニュ", romaji: "nyu" }, { hiragana: "にょ", katakana: "ニョ", romaji: "nyo" },
     { hiragana: "ひゃ", katakana: "ヒャ", romaji: "hya" }, { hiragana: "ひゅ", katakana: "ヒュ", romaji: "hyu" }, { hiragana: "ひょ", katakana: "ヒョ", romaji: "hyo" },
     { hiragana: "みゃ", katakana: "ミャ", romaji: "mya" }, { hiragana: "みゅ", katakana: "ミュ", romaji: "myu" }, { hiragana: "みょ", katakana: "ミョ", romaji: "myo" },
     { hiragana: "りゃ", katakana: "リャ", romaji: "rya" }, { hiragana: "りゅ", katakana: "リュ", romaji: "ryu" }, { hiragana: "りょ", katakana: "リョ", romaji: "ryo" },
-    { hiragana: "ぎゃ", katakana: "ギャ", romaji: "gya" }, { hiragana: "ぎゅ", katakana: "ギュ", romaji: "kyu" }, { hiragana: "ぎょ", katakana: "ギョ", romaji: "gyo" },
+    { hiragana: "ぎゃ", katakana: "ギャ", romaji: "gya" }, { hiragana: "ぎゅ", katakana: "ギュ", romaji: "gyu" }, { hiragana: "ぎょ", katakana: "ギョ", romaji: "gyo" },
     { hiragana: "じゃ", katakana: "ジャ", romaji: "ja" }, { hiragana: "じゅ", katakana: "ジュ", romaji: "ju" }, { hiragana: "じょ", katakana: "ジョ", romaji: "jo" },
     { hiragana: "びゃ", katakana: "ビャ", romaji: "bya" }, { hiragana: "びゅ", katakana: "ビュ", romaji: "byu" }, { hiragana: "びょ", katakana: "ビョ", romaji: "byo" },
     { hiragana: "ぴゃ", katakana: "ピャ", romaji: "pya" }, { hiragana: "ぴゅ", katakana: "ピュ", romaji: "pyu" }, { hiragana: "ぴょ", katakana: "ピョ", romaji: "pyo" },
@@ -352,6 +352,7 @@ function updateUI() {
     else if (currentMode === "dialogue") renderDialogueMode();
     else if (currentMode === "listening") renderListeningMode();
     else if (currentMode === "kana") renderKanaMode();
+    else if (currentMode === "writing") renderWritingMode();
 
     // 同步重新整理第四頁看板（如果存在的話）
     renderNewsLinks();
@@ -673,6 +674,170 @@ function checkKanaAnswer() {
 }
 
 // ==========================================
+// 4.5 ✍️ 寫作特訓（英文：依照使用者自己新增的單字/句子動態出題）
+// ==========================================
+
+// 段落儲存結構：{ en: { "單字文字": { text, savedAt } }, fr: {...} }
+let writingParagraphs = JSON.parse(localStorage.getItem("multiLangWritingParagraphs_v1")) || {};
+let writingIndex = 0;
+let writingReviewOpen = false;
+
+function saveWritingParagraphsToStorage() {
+    localStorage.setItem("multiLangWritingParagraphs_v1", JSON.stringify(writingParagraphs));
+}
+
+function getWritingParagraph(word) {
+    return (writingParagraphs[currentLang] || {})[word] || null;
+}
+
+function saveWritingParagraph(word, text) {
+    if (!writingParagraphs[currentLang]) writingParagraphs[currentLang] = {};
+    writingParagraphs[currentLang][word] = { text, savedAt: Date.now() };
+    saveWritingParagraphsToStorage();
+}
+
+function countWrittenParagraphs() {
+    return Object.keys(writingParagraphs[currentLang] || {}).length;
+}
+
+function renderWritingMode() {
+    // 目前動態版只做英文；法文維持原本「下載 Word 練習檔＋手機草稿」的方式
+    if (currentLang === 'fr') {
+        mainContent.innerHTML = `
+            <div class="quiz-box" style="padding: 15px; background: #fff; border-radius: 12px; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); text-align: left;">
+                <h3 style="color: #e53e3e; margin-top: 0;">🇫🇷 Compréhension Écrite</h3>
+                
+                <div style="background: #f7fafc; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #e53e3e;">
+                    <strong style="display:block; margin-bottom: 5px;">💻 Envie d'écrire sur PC ?</strong>
+                    <span style="font-size: 13px; color: #4a5568; display:block; margin-bottom: 10px;">點擊下方按鈕直接下載並使用 Word 開啟法文練習檔：</span>
+                    <a href="./Comprehension_ecrit.docx" download class="btn-primary" style="display: inline-block; text-decoration: none; font-size: 14px; padding: 8px 16px; background: #e53e3e; color: white; border-radius: 6px;">
+                        📥 開啟 Comprehension ecrit.docx
+                    </a>
+                </div>
+
+                <div style="background: #f7fafc; padding: 12px; border-radius: 8px;">
+                    <strong style="display:block; margin-bottom: 5px;">📱 Sur mobile ?</strong>
+                    <span style="font-size: 13px; color: #4a5568; display:block; margin-bottom: 10px;">利用手機短暫時間，直接在下方輸入法文簡答：</span>
+                    <textarea id="phoneWritingDraftFr" placeholder="Écrivez votre texte ici..." style="width: 100%; height: 120px; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e0; font-size: 15px; box-sizing: border-box; resize: vertical;"></textarea>
+                    <button class="btn-primary" style="margin-top: 8px; font-size: 13px; padding: 6px 12px; background: #e53e3e; color: white; border-radius: 6px;" onclick="alert('📝 Brouillon enregistré !')">💾 Enregistrer</button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    if (currentLang !== 'en') {
+        mainContent.innerHTML = `
+            <div class="quiz-box" style="text-align: center; padding: 30px; color: #718096;">
+                <h3>✍️ 寫作特訓</h3>
+                <p>目前動態寫作特訓主要針對「英文」設計，其他語言可以先試試其他練習模式！</p>
+            </div>
+        `;
+        return;
+    }
+
+    // 📚 回顧模式：顯示所有已完成的段落
+    if (writingReviewOpen) {
+        const entries = Object.entries(writingParagraphs[currentLang] || {});
+        mainContent.innerHTML = `
+            <div style="padding: 5px;">
+                <button id="writingBackBtn" style="margin-bottom:15px; background:#718096; color:#fff; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-size:13px;">⬅️ 返回練習</button>
+                <h3 style="margin-bottom:15px;">📚 已完成的段落（${entries.length} 篇）</h3>
+                ${entries.length === 0
+                ? '<p style="color:#a0aec0; text-align:center;">還沒有任何已儲存的段落</p>'
+                : entries.map(([word, data]) => `
+                        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:14px; margin-bottom:12px;">
+                            <div style="font-weight:bold; color:#2b6cb0; margin-bottom:6px;">${word}</div>
+                            <div style="font-size:14px; color:#4a5568; line-height:1.6; white-space:pre-wrap;">${data.text}</div>
+                        </div>
+                    `).join('')
+            }
+            </div>
+        `;
+        document.getElementById("writingBackBtn").addEventListener("click", () => {
+            writingReviewOpen = false;
+            updateUI();
+        });
+        return;
+    }
+
+    // ✍️ 練習模式：依情境過濾出來的單字/句子清單，逐一出題
+    const data = getFilteredList();
+    if (data.length === 0) {
+        mainContent.innerHTML = `<div style='text-align:center;color:#999;padding:40px;'>此情境目前沒有任何單字/句子，快去引進庫新增幾個，才能開始寫作特訓唷！<br><br><button onclick="navigateToPage(5)" style="padding:8px 16px; background:#2b6cb0; color:#fff; border:none; border-radius:6px; cursor:pointer;">前往引進庫</button></div>`;
+        return;
+    }
+
+    const item = data[writingIndex % data.length];
+    const saved = getWritingParagraph(item.text);
+    const reviewCount = countWrittenParagraphs();
+
+    mainContent.innerHTML = `
+        <div class="quiz-box" style="text-align:left; padding: 15px;">
+            <h3 style="text-align:center; margin-top:0;">🇬🇧 英文寫作特訓</h3>
+
+            <div style="background: #ebf8ff; border-left: 4px solid #2b6cb0; padding: 12px 14px; border-radius: 8px; margin-bottom: 15px;">
+                <div style="font-size: 13px; color: #4a5568; margin-bottom: 4px;">請至少用 3-4 句話，寫一小段用到下面這個單字/句子的英文段落：</div>
+                <div style="font-size: 22px; font-weight: bold; color: #2b6cb0;">${item.text}</div>
+                <div style="font-size: 13px; color: #718096; margin-top: 4px;">中文意思：${item.trans}</div>
+            </div>
+
+            <textarea id="writingArea" placeholder="Write a short paragraph (at least 3-4 sentences) using the word/phrase above..." style="width: 100%; height: 160px; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e0; font-size: 15px; box-sizing: border-box; resize: vertical;">${saved ? saved.text : ''}</textarea>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                <span id="writingWordCount" style="font-size:12px; color:#a0aec0;"></span>
+                <span id="writingSaveStatus" style="font-size:12px; color:#38a169; font-weight:bold;"></span>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:12px;">
+                <button id="writingSaveBtn" class="btn-primary" style="flex:1; padding:10px;">💾 儲存這段</button>
+                <button id="writingNextBtn" style="flex:1; padding:10px; background:#718096; color:#fff; border:none; border-radius:25px; font-weight:bold; cursor:pointer;">下一個單字 ➡️</button>
+            </div>
+
+            ${reviewCount > 0 ? `<div style="margin-top:15px; text-align:center;"><button id="writingReviewBtn" style="background:none; border:none; color:#2b6cb0; text-decoration:underline; cursor:pointer; font-size:13px;">📚 查看所有已完成的段落（${reviewCount} 篇）</button></div>` : ''}
+        </div>
+    `;
+
+    const textarea = document.getElementById("writingArea");
+    const wordCountEl = document.getElementById("writingWordCount");
+    const saveStatusEl = document.getElementById("writingSaveStatus");
+
+    function updateCount() {
+        const text = textarea.value.trim();
+        const wordCount = text ? text.split(/\s+/).filter(Boolean).length : 0;
+        const sentenceCount = (text.match(/[.!?]+/g) || []).length;
+        wordCountEl.innerText = `${wordCount} 字・約 ${sentenceCount} 句`;
+    }
+    updateCount();
+    textarea.addEventListener("input", updateCount);
+
+    document.getElementById("writingSaveBtn").addEventListener("click", () => {
+        const text = textarea.value.trim();
+        if (!text) { alert("請先寫一點內容再儲存唷！"); return; }
+        const sentenceCount = (text.match(/[.!?]+/g) || []).length;
+        if (sentenceCount < 2) {
+            if (!confirm("目前看起來還不到 2 句話，確定要先儲存嗎？（建議至少寫 3-4 句）")) return;
+        }
+        saveWritingParagraph(item.text, text);
+        saveStatusEl.innerText = "✅ 已儲存！";
+        setTimeout(() => { if (saveStatusEl) saveStatusEl.innerText = ""; }, 2000);
+    });
+
+    document.getElementById("writingNextBtn").addEventListener("click", () => {
+        writingIndex++;
+        updateUI();
+    });
+
+    const reviewBtn = document.getElementById("writingReviewBtn");
+    if (reviewBtn) {
+        reviewBtn.addEventListener("click", () => {
+            writingReviewOpen = true;
+            updateUI();
+        });
+    }
+}
+
+// ==========================================
 // 5. 第四頁：📰 官方推薦新聞導航看板
 // ==========================================
 const newsDatabase = {
@@ -723,6 +888,12 @@ function renderNewsLinks() {
         displayLinks(langData.links);
     }
 }
+
+// 關閉新聞模態視窗（原本 index.html 有呼叫但 JS 從未定義，會導致點擊時噴錯）
+window.closeNewsModal = function () {
+    const modal = document.getElementById("newsModal");
+    if (modal) modal.style.display = "none";
+};
 
 function displayLinks(linksArray) {
     const linkListContainer = document.getElementById("newsLinkList");
@@ -877,6 +1048,41 @@ function renderPage5ImportCenter() {
                 ${userLinks.length === 0 ? '<p style="text-align:center; color:#a0aec0; padding:10px; font-size:13px; margin:0;">目前沒有自訂任何網站唷！</p>' : ''}
             </div>
         </div>
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+        <div class="inspiration-section">
+            <h3 style="font-size: 16px; color: #2b6cb0; margin-bottom: 12px;">✨ 採集新句子到隨身包（推薦站）</h3>
+            <div class="inspiration-list">
+                <div class="inspire-card">
+                    <div class="card-info">
+                        <strong class="new-text">お勧めは何ですか？</strong>
+                        <span class="new-trans">（日語）有什麼推薦的嗎？</span>
+                    </div>
+                    <button class="add-to-pack-btn"
+                        onclick="collectWord('お勧めは何ですか？', '有什麼推薦的嗎？', 'ja', 'restaurant')">➕ 收藏</button>
+                </div>
+
+                <div class="inspire-card">
+                    <div class="card-info">
+                        <strong class="new-text">여기요, 물 좀 주세요.</strong>
+                        <span class="new-trans">（韓語）這裡，請給我水。</span>
+                    </div>
+                    <button class="add-to-pack-btn"
+                        onclick="collectWord('여기요, 물 좀 주세요.', '這裡，請給我水。', 'ko', 'restaurant')">➕ 收藏</button>
+                </div>
+
+                <div class="inspire-card">
+                    <div class="card-info">
+                        <strong class="new-text">Where is the nearest station?</strong>
+                        <span class="new-trans">（英語）最近的車站在哪裡？</span>
+                    </div>
+                    <button class="add-to-pack-btn"
+                        onclick="collectWord('Where is the nearest station?', '最近的車站在哪裡？', 'en', 'transport')">➕
+                        收藏</button>
+                </div>
+            </div>
+        </div>
     `;
 
     document.getElementById("p5AddLinkBtn").addEventListener("click", addLinkFromPage5);
@@ -1019,7 +1225,8 @@ function getFullSyncPayload() {
     return {
         userDatabase,
         userLinks,
-        categories
+        categories,
+        customLanguages
     };
 }
 
@@ -1027,9 +1234,12 @@ function applySyncPayload(payload) {
     if (payload.userDatabase) userDatabase = payload.userDatabase;
     if (payload.userLinks) userLinks = payload.userLinks;
     if (payload.categories) categories = payload.categories;
+    if (payload.customLanguages) customLanguages = payload.customLanguages;
     saveToStorage();
     saveLinksToStorage();
     saveCategoriesToStorage();
+    saveCustomLanguages();
+    renderLangGrid();
 }
 
 function updateSyncStatusUI(text) {
@@ -1131,10 +1341,13 @@ document.addEventListener("DOMContentLoaded", () => {
     renderLangGrid();
 
     // 特訓模式切換（第三頁使用）
+    // 修改特訓模式切換（約在 script.js 的最下方）
     modeButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-            const targetMode = btn.getAttribute("data-mode") || modeMapping[Array.from(modeButtons).indexOf(btn)] || "dialogue";
-            if (typeof modeMapping !== 'undefined' && modeMapping.includes(targetMode)) {
+            const targetMode = btn.getAttribute("data-mode");
+
+            // 這裡加上 || targetMode === 'writing' 確保新模式可以被順利切換！
+            if ((typeof modeMapping !== 'undefined' && modeMapping.includes(targetMode)) || targetMode === 'writing') {
                 currentMode = targetMode;
                 modeButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
