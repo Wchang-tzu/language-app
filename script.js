@@ -301,14 +301,17 @@ function renderCategoryPage() {
 
     page2Container.innerHTML = `
         <h2 style="text-align:center; color:#2d3748; margin-bottom:10px;">🧳 選擇學習情境</h2>
-        <p style="text-align:center; color:#718096; font-size:14px; margin-bottom:25px;">點選下方情境，系統將引導你進入第三頁進行深度特訓</p>
+        <p style="text-align:center; color:#718096; font-size:14px; margin-bottom:25px;">點選下方情境，系統將引導你進入第三頁進行深度特訓；右上角 ✕ 可以刪除自訂的情境</p>
         
         <div id="categoryGrid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:15px; padding:10px;">
             ${categories.map(cat => `
-                <button onclick="selectCategoryAndGo('${cat.id}')" class="cat-card-btn" style="background:#fff; border:2px solid #e2e8f0; border-radius:16px; padding:20px 15px; cursor:pointer; text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.02); transition:all 0.2s; display:flex; flex-direction:column; align-items:center; gap:8px;">
-                    <span style="font-size:32px;">${cat.icon}</span>
-                    <span style="font-size:15px; font-weight:bold; color:#2d3748;">${cat.name}</span>
-                </button>
+                <div style="position:relative;">
+                    <button onclick="selectCategoryAndGo('${cat.id}')" class="cat-card-btn" style="width:100%; background:#fff; border:2px solid #e2e8f0; border-radius:16px; padding:20px 15px; cursor:pointer; text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.02); transition:all 0.2s; display:flex; flex-direction:column; align-items:center; gap:8px; box-sizing:border-box;">
+                        <span style="font-size:32px;">${cat.icon}</span>
+                        <span style="font-size:15px; font-weight:bold; color:#2d3748;">${cat.name}</span>
+                    </button>
+                    ${cat.id !== 'all' ? `<button onclick="deleteCategoryFlow('${cat.id}')" title="刪除這個情境" style="position:absolute; top:6px; right:6px; background:#e53e3e; color:#fff; border:none; border-radius:50%; width:22px; height:22px; font-size:12px; line-height:1; cursor:pointer;">✕</button>` : ''}
+                </div>
             `).join('')}
             
             <button onclick="addNewCustomCategory()" class="cat-card-btn" style="background:#f7fafc; border:2px dashed #cbd5e0; border-radius:16px; padding:20px 15px; cursor:pointer; text-align:center; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;">
@@ -324,6 +327,20 @@ window.selectCategoryAndGo = function (catId) {
     currentCat = catId;
     // 自動導向第三頁 (特訓練習頁)
     navigateToPage(3);
+};
+
+// 刪除情境（保護「全部情境展示」不能被刪除；情境底下的字句不會被刪，只是篩選選項消失）
+window.deleteCategoryFlow = function (catId) {
+    const cat = categories.find(c => c.id === catId);
+    if (!cat) return;
+    if (catId === 'all') { alert("「全部情境展示」是系統預設選項，沒辦法刪除唷！"); return; }
+
+    if (confirm(`確定要刪除情境「${cat.icon} ${cat.name}」嗎？\n（這個情境底下的字句不會被刪除，只是這個篩選選項會消失，之後字句會歸類在「全部情境展示」下）`)) {
+        categories = categories.filter(c => c.id !== catId);
+        saveCategoriesToStorage();
+        if (currentCat === catId) currentCat = 'all';
+        renderCategoryPage();
+    }
 };
 
 // 建立全新自訂情境的彈窗邏輯
@@ -708,40 +725,7 @@ function countWrittenParagraphs() {
 }
 
 function renderWritingMode() {
-    // 目前動態版只做英文；法文維持原本「下載 Word 練習檔＋手機草稿」的方式
-    if (currentLang === 'fr') {
-        mainContent.innerHTML = `
-            <div class="quiz-box" style="padding: 15px; background: #fff; border-radius: 12px; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); text-align: left;">
-                <h3 style="color: #e53e3e; margin-top: 0;">🇫🇷 Compréhension Écrite</h3>
-                
-                <div style="background: #f7fafc; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #e53e3e;">
-                    <strong style="display:block; margin-bottom: 5px;">💻 Envie d'écrire sur PC ?</strong>
-                    <span style="font-size: 13px; color: #4a5568; display:block; margin-bottom: 10px;">點擊下方按鈕直接下載並使用 Word 開啟法文練習檔：</span>
-                    <a href="./Comprehension_ecrit.docx" download class="btn-primary" style="display: inline-block; text-decoration: none; font-size: 14px; padding: 8px 16px; background: #e53e3e; color: white; border-radius: 6px;">
-                        📥 開啟 Comprehension ecrit.docx
-                    </a>
-                </div>
-
-                <div style="background: #f7fafc; padding: 12px; border-radius: 8px;">
-                    <strong style="display:block; margin-bottom: 5px;">📱 Sur mobile ?</strong>
-                    <span style="font-size: 13px; color: #4a5568; display:block; margin-bottom: 10px;">利用手機短暫時間，直接在下方輸入法文簡答：</span>
-                    <textarea id="phoneWritingDraftFr" placeholder="Écrivez votre texte ici..." style="width: 100%; height: 120px; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e0; font-size: 15px; box-sizing: border-box; resize: vertical;"></textarea>
-                    <button class="btn-primary" style="margin-top: 8px; font-size: 13px; padding: 6px 12px; background: #e53e3e; color: white; border-radius: 6px;" onclick="alert('📝 Brouillon enregistré !')">💾 Enregistrer</button>
-                </div>
-            </div>
-        `;
-        return;
-    }
-
-    if (currentLang !== 'en') {
-        mainContent.innerHTML = `
-            <div class="quiz-box" style="text-align: center; padding: 30px; color: #718096;">
-                <h3>✍️ 寫作特訓</h3>
-                <p>目前動態寫作特訓主要針對「英文」設計，其他語言可以先試試其他練習模式！</p>
-            </div>
-        `;
-        return;
-    }
+    // ✍️ 動態寫作特訓現在適用所有語言：依照目前選擇的語言 + 情境，從使用者自己新增的單字/句子出題
 
     // 📚 回顧模式：顯示所有已完成的段落
     if (writingReviewOpen) {
@@ -785,15 +769,15 @@ function renderWritingMode() {
 
     mainContent.innerHTML = `
         <div class="quiz-box" style="text-align:left; padding: 15px;">
-            <h3 style="text-align:center; margin-top:0;">🇬🇧 英文寫作特訓</h3>
+            <h3 style="text-align:center; margin-top:0;">${getLangMeta(currentLang).icon} ${getLangMeta(currentLang).name}寫作特訓</h3>
 
             <div style="background: #ebf8ff; border-left: 4px solid #2b6cb0; padding: 12px 14px; border-radius: 8px; margin-bottom: 15px;">
-                <div style="font-size: 13px; color: #4a5568; margin-bottom: 4px;">請至少用 3-4 句話，寫一小段用到下面這個單字/句子的英文段落：</div>
+                <div style="font-size: 13px; color: #4a5568; margin-bottom: 4px;">請至少用 3-4 句話，寫一小段用到下面這個單字/句子的${getLangMeta(currentLang).name}段落：</div>
                 <div style="font-size: 22px; font-weight: bold; color: #2b6cb0;">${item.text}</div>
                 <div style="font-size: 13px; color: #718096; margin-top: 4px;">中文意思：${item.trans}</div>
             </div>
 
-            <textarea id="writingArea" placeholder="Write a short paragraph (at least 3-4 sentences) using the word/phrase above..." style="width: 100%; height: 160px; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e0; font-size: 15px; box-sizing: border-box; resize: vertical;">${saved ? saved.text : ''}</textarea>
+            <textarea id="writingArea" placeholder="在這裡寫下你的段落，至少 3-4 句話..." style="width: 100%; height: 160px; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e0; font-size: 15px; box-sizing: border-box; resize: vertical;">${saved ? saved.text : ''}</textarea>
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
                 <span id="writingWordCount" style="font-size:12px; color:#a0aec0;"></span>
@@ -820,7 +804,7 @@ function renderWritingMode() {
     function updateCount() {
         const text = textarea.value.trim();
         const wordCount = text ? text.split(/\s+/).filter(Boolean).length : 0;
-        const sentenceCount = (text.match(/[.!?]+/g) || []).length;
+        const sentenceCount = (text.match(/[.!?。！？]+/g) || []).length;
         wordCountEl.innerText = `${wordCount} 字・約 ${sentenceCount} 句`;
     }
     updateCount();
@@ -829,7 +813,7 @@ function renderWritingMode() {
     document.getElementById("writingSaveBtn").addEventListener("click", () => {
         const text = textarea.value.trim();
         if (!text) { alert("請先寫一點內容再儲存唷！"); return; }
-        const sentenceCount = (text.match(/[.!?]+/g) || []).length;
+        const sentenceCount = (text.match(/[.!?。！？]+/g) || []).length;
         if (sentenceCount < 2) {
             if (!confirm("目前看起來還不到 2 句話，確定要先儲存嗎？（建議至少寫 3-4 句）")) return;
         }
@@ -876,7 +860,7 @@ async function exportWritingToDocx() {
             new Paragraph({
                 alignment: AlignmentType.CENTER,
                 spacing: { after: 60 },
-                children: [new TextRun({ text: "✍️ My English Writing Practice", bold: true, size: 40, color: "2B6CB0" })]
+                children: [new TextRun({ text: `✍️ My ${getLangMeta(currentLang).name} Writing Practice`, bold: true, size: 40, color: "2B6CB0" })]
             }),
             new Paragraph({
                 alignment: AlignmentType.CENTER,
@@ -907,7 +891,7 @@ async function exportWritingToDocx() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "writing_exercise.docx";
+        a.download = `writing_exercise_${currentLang}.docx`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
