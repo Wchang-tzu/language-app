@@ -142,8 +142,15 @@ let categories = JSON.parse(localStorage.getItem("multiLangCategories_v8")) || [
     { id: "food", name: "餐飲美食", icon: "🍱" },
     { id: "hotel", name: "飯店住宿", icon: "🏨" },
     { id: "transport", name: "交通運輸", icon: "🚇" },
-    { id: "shopping", name: "購物血拼", icon: "🛍️" }
+    { id: "shopping", name: "購物血拼", icon: "🛍️" },
+    { id: "rare", name: "生僻字", icon: "🧠" }
 ];
+
+// 🔄 舊使用者的 localStorage 裡可能還沒有「生僻字」這個情境，自動補上一次
+if (!categories.some(c => c.id === "rare")) {
+    categories.push({ id: "rare", name: "生僻字", icon: "🧠" });
+    localStorage.setItem("multiLangCategories_v8", JSON.stringify(categories));
+}
 
 // DOM 元素快取 (加上安全防呆，免得 HTML 還沒完全渲染出來)
 let mainContent = document.getElementById("mainContent");
@@ -741,7 +748,10 @@ function renderWritingMode() {
         const entries = Object.entries(writingParagraphs[currentLang] || {});
         mainContent.innerHTML = `
             <div style="padding: 5px;">
-                <button id="writingBackBtn" style="margin-bottom:15px; background:#718096; color:#fff; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-size:13px;">⬅️ 返回練習</button>
+                <div style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap;">
+                    <button id="writingBackBtn" style="background:#718096; color:#fff; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-size:13px;">⬅️ 返回練習</button>
+                    <button id="writingExportBtn" style="background:#2b6cb0; color:#fff; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-size:13px;">📥 匯出成 Word</button>
+                </div>
                 <h3 style="margin-bottom:15px;">📚 已完成的段落（${entries.length} 篇）</h3>
                 ${entries.length === 0
                 ? '<p style="color:#a0aec0; text-align:center;">還沒有任何已儲存的段落</p>'
@@ -758,6 +768,7 @@ function renderWritingMode() {
             writingReviewOpen = false;
             updateUI();
         });
+        document.getElementById("writingExportBtn").addEventListener("click", exportWritingToDocx);
         return;
     }
 
@@ -794,7 +805,11 @@ function renderWritingMode() {
                 <button id="writingNextBtn" style="flex:1; padding:10px; background:#718096; color:#fff; border:none; border-radius:25px; font-weight:bold; cursor:pointer;">下一個單字 ➡️</button>
             </div>
 
-            ${reviewCount > 0 ? `<div style="margin-top:15px; text-align:center;"><button id="writingReviewBtn" style="background:none; border:none; color:#2b6cb0; text-decoration:underline; cursor:pointer; font-size:13px;">📚 查看所有已完成的段落（${reviewCount} 篇）</button></div>` : ''}
+            ${reviewCount > 0 ? `
+            <div style="margin-top:15px; display:flex; gap:16px; justify-content:center; align-items:center;">
+                <button id="writingReviewBtn" style="background:none; border:none; color:#2b6cb0; text-decoration:underline; cursor:pointer; font-size:13px;">📚 查看所有已完成的段落（${reviewCount} 篇）</button>
+                <button id="writingExportBtnInline" style="background:none; border:none; color:#38a169; text-decoration:underline; cursor:pointer; font-size:13px;">📥 匯出成 Word</button>
+            </div>` : ''}
         </div>
     `;
 
@@ -834,6 +849,71 @@ function renderWritingMode() {
             writingReviewOpen = true;
             updateUI();
         });
+    }
+
+    const exportBtnInline = document.getElementById("writingExportBtnInline");
+    if (exportBtnInline) exportBtnInline.addEventListener("click", exportWritingToDocx);
+}
+
+// 📥 把目前語言所有已儲存的寫作段落匯出成一份 Word 檔（每次都是重新產生完整檔案，不是在雲端偷偷改同一份檔案）
+async function exportWritingToDocx() {
+    if (typeof docx === "undefined") {
+        alert("匯出功能需要的套件還沒載入完成，請確認網路連線後重新整理頁面再試一次！");
+        return;
+    }
+
+    const entries = Object.entries(writingParagraphs[currentLang] || {});
+    if (entries.length === 0) {
+        alert("目前還沒有任何已儲存的段落，寫完段落後記得先按「💾 儲存這段」再匯出唷！");
+        return;
+    }
+
+    try {
+        const { Document, Packer, Paragraph, TextRun, AlignmentType } = docx;
+        const catName = (categories.find(c => c.id === currentCat) || {}).name || currentCat;
+
+        const children = [
+            new Paragraph({
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 60 },
+                children: [new TextRun({ text: "✍️ My English Writing Practice", bold: true, size: 40, color: "2B6CB0" })]
+            }),
+            new Paragraph({
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 300 },
+                children: [new TextRun({ text: `情境：${catName} ・ 匯出時間：${new Date().toLocaleString()}`, size: 20, color: "718096" })]
+            })
+        ];
+
+        entries.forEach(([word, data], idx) => {
+            children.push(new Paragraph({
+                spacing: { before: 300, after: 80 },
+                children: [new TextRun({ text: `${idx + 1}. ${word}`, bold: true, size: 26, color: "2B6CB0" })]
+            }));
+            children.push(new Paragraph({
+                spacing: { after: 200 },
+                children: [new TextRun({ text: data.text, size: 22 })]
+            }));
+        });
+
+        const doc = new Document({
+            sections: [{
+                properties: { page: { size: { width: 12240, height: 15840 } } },
+                children
+            }]
+        });
+
+        const blob = await Packer.toBlob(doc);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "writing_exercise.docx";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        alert("匯出失敗：" + err.message);
     }
 }
 
