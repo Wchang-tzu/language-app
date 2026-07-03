@@ -92,12 +92,13 @@ let currentKanaQuiz = null;
 // 2. 全域變數與快取
 // ==========================================
 let userDatabase = JSON.parse(localStorage.getItem("multiLangDynamicDB_v8")) || defaultDatabase;
+
 // ==========================================
-// 📥 全域自訂暫存區（用於寫作練習匯入朗讀）
+// 🗣️ 口語發音特訓：使用者自己新增的短文/對話庫
 // ==========================================
-let importedWritingText = "";
-window.currentSpeakingLevel = 'words';
-window.currentSpeakingIndex = 0;
+let speakingArticles = JSON.parse(localStorage.getItem("multiLangSpeakingArticles_v1")) || {};
+let speakingIndex = 0;
+
 window.currentClozeAnswers = [];
 // 🌐 語言中繼資料：預設 7 種語言 + 使用者自訂新增的語言
 const defaultLangMeta = [
@@ -410,70 +411,7 @@ function updateUI() {
     else if (currentMode === "listening") renderListeningMode();
     else if (currentMode === "kana") renderKanaMode();
     else if (currentMode === "writing") renderWritingMode();
-    else if (currentMode === 'speaking') {
-        let isImported = importedWritingText !== "";
-
-        // 分級獲取目前的語句數據
-        let catTextList = (currentCatData && currentCatData.list) ? currentCatData.list.map(i => i.text) : ["No data available"];
-
-        const data = isImported ? {
-            words: [], sentences: [], paragraphs: [importedWritingText]
-        } : {
-            words: catTextList.filter(t => t.split(' ').length <= 2), // 簡易分類：兩個單字以內算單字
-            sentences: catTextList.filter(t => t.split(' ').length > 2 && t.split(' ').length <= 8),
-            paragraphs: catTextList.filter(t => t.split(' ').length > 8)
-        };
-
-        // 防呆補丁：如果分類出來是空的，給予預設
-        if (!isImported && data.words.length === 0) data.words = catTextList;
-
-        mainContent.innerHTML = `
-            <div class="practice-zone">
-                <div class="challenge-card">
-                    <h3 style="margin-top:0; color:#2b6cb0;">🗣️ 口語發音與朗誦特訓</h3>
-                    
-                    ${isImported ? `
-                        <div style="background: #ebf8ff; color: #2b6cb0; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #3182ce;">
-                            <span>📝 正在朗誦：您從「寫作練習」匯入的自訂文章</span>
-                            <button id="clearImportBtn" style="background: #e53e3e; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">返回預設</button>
-                        </div>
-                    ` : ''}
-
-                    <div class="speaking-tabs" style="display: ${isImported ? 'none' : 'flex'}; gap: 10px; margin-bottom: 20px;">
-                        <button class="tab-btn ${window.currentSpeakingLevel === 'words' ? 'active' : ''}" onclick="switchSpeakingLevel('words')">🔤 單字</button>
-                        <button class="tab-btn ${window.currentSpeakingLevel === 'sentences' ? 'active' : ''}" onclick="switchSpeakingLevel('sentences')">💬 句子/對話</button>
-                        <button class="tab-btn ${window.currentSpeakingLevel === 'paragraphs' ? 'active' : ''}" onclick="switchSpeakingLevel('paragraphs')">📄 文章朗讀</button>
-                    </div>
-
-                    <div id="speakingContentDisplay" style="background: #f7fafc; padding: 25px; border-radius: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 20px; font-size: 1.2rem; text-align: center; line-height: 1.6; font-weight: 600; min-height: 60px; display:flex; align-items:center; justify-content:center;">
-                        </div>
-
-                    <div id="speakingControls" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                        <button id="prevSpeakBtn" class="btn-primary" style="background:#718096;">⬅️ 上一題</button>
-                        <button id="nextSpeakBtn" class="btn-primary" style="background:#718096;">下一題 ➡️</button>
-                    </div>
-
-                    <div style="text-align: center; margin-top: 25px;">
-                        <button id="startRecordBtn" class="btn-primary" style="background-color: #48bb78; padding: 12px 30px; font-size: 1.1rem; border-radius: 25px;">
-                            🎤 開始錄音朗讀
-                        </button>
-                        <div id="speakResult" style="margin-top: 20px; font-weight: bold; font-size: 1.1rem; color: #4a5568;"></div>
-                        <div id="feedbackZone" style="margin-top: 15px; font-size: 1rem; line-height: 1.5;"></div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        if (isImported) {
-            document.getElementById('clearImportBtn').onclick = () => { importedWritingText = ""; updateUI(); };
-            window.currentSpeakingLevel = 'paragraphs';
-        }
-
-        window.currentSpeakingData = data;
-
-        // 綁定內部分頁與辨識控制
-        window.loadSpeakingContent();
-    }
+    else if (currentMode === "speaking") renderSpeakingMode();
     // 同步重新整理第四頁看板（如果存在的話）
     renderNewsLinks();
     renderMyLinks();
@@ -998,6 +936,151 @@ async function exportWritingToDocx() {
 }
 
 // ==========================================
+// 4.6 🗣️ 口語發音特訓（朗讀使用者自己的短文/對話，用語音辨識比對正確度）
+// ==========================================
+
+function saveSpeakingArticlesToStorage() {
+    localStorage.setItem("multiLangSpeakingArticles_v1", JSON.stringify(speakingArticles));
+}
+
+// 把文字整理成方便比對的最小單位陣列：有空格的語言（英/法/西/德等）用「單字」比對，
+// 沒有空格的語言（例如日文）用「單一字元」比對，這樣不用針對個別語言寫特殊規則
+function normalizeForCompare(text) {
+    return text.toLowerCase().replace(/[.,\/#!$%\^&*;:{}=\-_`~()?？。，、！「」『』"'\n\r]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function useWordLevelFor(text) {
+    return /\s/.test(text.trim());
+}
+
+// 用「最長共同子序列」演算法，找出原文中有哪些單位有在辨識結果裡「依序」出現，藉此判斷唸對了哪些
+function diffUnits(originalUnits, spokenUnits) {
+    const m = originalUnits.length, n = spokenUnits.length;
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            if (originalUnits[i - 1] === spokenUnits[j - 1]) dp[i][j] = dp[i - 1][j - 1] + 1;
+            else dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+        }
+    }
+    const matched = new Array(m).fill(false);
+    let i = m, j = n;
+    while (i > 0 && j > 0) {
+        if (originalUnits[i - 1] === spokenUnits[j - 1]) { matched[i - 1] = true; i--; j--; }
+        else if (dp[i - 1][j] >= dp[i][j - 1]) i--;
+        else j--;
+    }
+    return { matched, matchCount: dp[m][n] };
+}
+
+function renderSpeakingMode() {
+    const list = speakingArticles[currentLang] || [];
+    const meta = getLangMeta(currentLang);
+
+    if (list.length === 0) {
+        mainContent.innerHTML = `<div style='text-align:center;color:#999;padding:40px;'>目前${meta.name}還沒有任何短文/對話，快去引進庫新增一篇吧！<br><br><button onclick="navigateToPage(5)" style="padding:8px 16px; background:#2b6cb0; color:#fff; border:none; border-radius:6px; cursor:pointer;">前往引進庫</button></div>`;
+        return;
+    }
+
+    const article = list[speakingIndex % list.length];
+
+    mainContent.innerHTML = `
+        <div class="quiz-box" style="text-align:left; padding:15px;">
+            <h3 style="text-align:center; margin-top:0;">${meta.icon} ${meta.name}口語朗讀特訓</h3>
+
+            <div style="background:#f7fafc; border-radius:10px; padding:16px; margin-bottom:15px;">
+                <div style="font-weight:bold; color:#2b6cb0; margin-bottom:8px;">📖 ${article.title}</div>
+                <div style="font-size:17px; line-height:1.8; color:#2d3748; white-space:pre-wrap;">${article.text}</div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-bottom:12px;">
+                <button id="speakSampleBtn" style="flex:1; padding:10px; background:#718096; color:#fff; border:none; border-radius:25px; font-weight:bold; cursor:pointer;">🔊 播放範例發音</button>
+                <button id="speakStartBtn" style="flex:1; padding:10px; background:#48bb78; color:#fff; border:none; border-radius:25px; font-weight:bold; cursor:pointer;">🎤 開始朗讀</button>
+            </div>
+
+            <div id="speakStatus" style="text-align:center; font-size:13px; color:#a0aec0; min-height:18px; margin-bottom:10px;"></div>
+            <div id="speakDiffResult" style="font-size:17px; line-height:1.9; padding:14px; border-radius:10px; background:#fff; border:1px solid #e2e8f0; display:none;"></div>
+            <div id="speakAccuracy" style="text-align:center; font-weight:bold; margin-top:10px;"></div>
+
+            <div style="text-align:center; margin-top:15px;">
+                <button id="speakNextBtn" style="background:none; border:none; color:#2b6cb0; text-decoration:underline; cursor:pointer; font-size:13px;">下一篇 ➡️（共 ${list.length} 篇）</button>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("speakSampleBtn").addEventListener("click", () => speak(article.text, currentLang));
+    document.getElementById("speakNextBtn").addEventListener("click", () => { speakingIndex++; updateUI(); });
+    document.getElementById("speakStartBtn").addEventListener("click", () => startSpeakingRecognition(article.text));
+}
+
+function startSpeakingRecognition(originalText) {
+    const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const statusEl = document.getElementById("speakStatus");
+    const diffEl = document.getElementById("speakDiffResult");
+    const accEl = document.getElementById("speakAccuracy");
+
+    if (!SpeechRecognitionCtor) {
+        alert("很抱歉，你目前使用的瀏覽器不支援語音辨識功能，建議用電腦版 Chrome 或 Edge 開啟這個模式！");
+        return;
+    }
+
+    const meta = getLangMeta(currentLang);
+    if (!meta.speechLang) {
+        if (!confirm("這個語言目前沒有設定語音代碼，語音辨識可能無法準確判斷唷，確定要繼續嗎？")) return;
+    }
+
+    const recognition = new SpeechRecognitionCtor();
+    recognition.lang = meta.speechLang || "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    if (statusEl) statusEl.innerText = "🎙️ 聆聽中，請開始朗讀...";
+    if (diffEl) diffEl.style.display = "none";
+    if (accEl) accEl.innerText = "";
+
+    recognition.onresult = (event) => {
+        const spokenText = event.results[0][0].transcript;
+        if (statusEl) statusEl.innerText = `你唸的內容：「${spokenText}」`;
+
+        const wordLevel = useWordLevelFor(originalText);
+        const cleanOriginal = normalizeForCompare(originalText);
+        const cleanSpoken = normalizeForCompare(spokenText);
+
+        const originalUnits = wordLevel ? cleanOriginal.split(" ").filter(Boolean) : cleanOriginal.replace(/\s+/g, "").split("").filter(Boolean);
+        const spokenUnits = wordLevel ? cleanSpoken.split(" ").filter(Boolean) : cleanSpoken.replace(/\s+/g, "").split("").filter(Boolean);
+
+        if (originalUnits.length === 0) return;
+
+        const { matched, matchCount } = diffUnits(originalUnits, spokenUnits);
+        const accuracy = Math.round((matchCount / originalUnits.length) * 100);
+
+        const highlighted = originalUnits.map((unit, idx) => {
+            const color = matched[idx] ? "#2f855a" : "#e53e3e";
+            const bg = matched[idx] ? "#f0fff4" : "#fff5f5";
+            return `<span style="color:${color}; background:${bg}; padding:1px 4px; border-radius:4px; margin:1px; display:inline-block;">${unit}</span>`;
+        }).join(wordLevel ? " " : "");
+
+        if (diffEl) {
+            diffEl.innerHTML = highlighted;
+            diffEl.style.display = "block";
+        }
+        if (accEl) {
+            let comment = "";
+            if (accuracy >= 90) comment = "🎉 太棒了，發音非常準確！";
+            else if (accuracy >= 70) comment = "👍 不錯，還有一些字可以再練習！";
+            else comment = "💪 再試一次，注意紅色標記的部分！";
+            accEl.innerHTML = `<span style="color:${accuracy >= 70 ? '#38a169' : '#e53e3e'};">準確率 ${accuracy}%</span><br><span style="font-size:13px; color:#718096; font-weight:normal;">${comment}</span>`;
+        }
+    };
+
+    recognition.onerror = (event) => {
+        if (statusEl) statusEl.innerText = `❌ 沒有偵測到清楚的聲音（${event.error}），請確認麥克風權限後再試一次。`;
+    };
+
+    recognition.start();
+}
+
+// ==========================================
 // 5. 第四頁：📰 官方推薦新聞導航看板
 // ==========================================
 const newsDatabase = {
@@ -1209,6 +1292,33 @@ function renderPage5ImportCenter() {
             </div>
         </div>
 
+        <div class="import-card" style="background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05); margin-bottom:25px; border: 1px solid #e2e8f0;">
+            <h3 style="margin:0 0 15px 0; color:#2f855a; font-size:18px;">🗣️ 口語短文/對話管理（${getLangMeta(currentLang).name}）</h3>
+
+            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px; background:#f7fafc; padding:15px; border-radius:8px; border:1px dashed #cbd5e0;">
+                <h4 style="margin:0; color:#4a5568; font-size:13px;">➕ 新增一篇短文或對話（可以自己寫，也可以貼上從別的地方找到的文章）：</h4>
+                <input type="text" id="p5SpeakTitle" placeholder="標題（例如：在餐廳點餐對話）" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+                <textarea id="p5SpeakText" placeholder="貼上或輸入短文/對話全文..." style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px; min-height:90px; resize:vertical; font-family:inherit;"></textarea>
+                <button id="p5AddSpeakBtn" style="background:#2f855a; color:#fff; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px; margin-top:4px;">確認新增</button>
+            </div>
+
+            <h4 style="margin:0 0 10px 0; color:#4a5568; font-size:14px;">📋 已新增的短文/對話（${(speakingArticles[currentLang] || []).length}）</h4>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                ${(speakingArticles[currentLang] || []).map((item, index) => `
+                    <div style="background:#fff; border:1px solid #edf2f7; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.01);">
+                        <div style="flex:1; margin-right:10px; min-width:0;">
+                            <div style="font-size:14px; font-weight:bold; color:#2d3748; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📖 ${item.title}</div>
+                            <div style="font-size:12px; color:#718096; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.text}</div>
+                        </div>
+                        <div style="display:flex; gap:6px; flex-shrink:0;">
+                            <button onclick="editSpeakingArticleFromPage5(${index})" style="background:#ecc94b; color:#744210; border:none; padding:4px 8px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">修改</button>
+                            <button onclick="deleteSpeakingArticleFromPage5(${index})" style="background:#e53e3e; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">刪除</button>
+                        </div>
+                    </div>`).join('')}
+                ${(speakingArticles[currentLang] || []).length === 0 ? '<p style="text-align:center; color:#a0aec0; padding:15px; font-size:13px; margin:0;">目前這個語言還沒有任何短文/對話唷！</p>' : ''}
+            </div>
+        </div>
+
         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
 
         <div class="inspiration-section">
@@ -1246,6 +1356,7 @@ function renderPage5ImportCenter() {
     `;
 
     document.getElementById("p5AddLinkBtn").addEventListener("click", addLinkFromPage5);
+    document.getElementById("p5AddSpeakBtn").addEventListener("click", addSpeakingArticleFromPage5);
 
     // ☁️ 同步按鈕事件綁定
     const syncCodeInputEl = document.getElementById("syncCodeInput");
@@ -1373,6 +1484,50 @@ window.deleteLinkFromPage5 = function (index) {
     }
 }
 
+// 🗣️ 口語短文/對話管理（新增、編輯、刪除）
+function addSpeakingArticleFromPage5() {
+    const titleEl = document.getElementById("p5SpeakTitle");
+    const textEl = document.getElementById("p5SpeakText");
+    if (!titleEl || !textEl) return;
+
+    const title = titleEl.value.trim();
+    const text = textEl.value.trim();
+    if (!title || !text) { alert("標題與內容都要填寫唷！"); return; }
+
+    if (!speakingArticles[currentLang]) speakingArticles[currentLang] = [];
+    speakingArticles[currentLang].push({ id: "sp_" + Date.now(), title, text });
+    saveSpeakingArticlesToStorage();
+    renderPage5ImportCenter();
+}
+
+window.editSpeakingArticleFromPage5 = function (index) {
+    const list = speakingArticles[currentLang] || [];
+    if (!list[index]) return;
+    const item = list[index];
+
+    const newTitle = prompt("1/2 修改標題：", item.title);
+    if (newTitle === null) return;
+    if (!newTitle.trim()) { alert("標題不能為空！"); return; }
+
+    const newText = prompt("2/2 修改短文/對話內容：", item.text);
+    if (newText === null) return;
+    if (!newText.trim()) { alert("內容不能為空！"); return; }
+
+    list[index] = { ...item, title: newTitle.trim(), text: newText.trim() };
+    saveSpeakingArticlesToStorage();
+    renderPage5ImportCenter();
+}
+
+window.deleteSpeakingArticleFromPage5 = function (index) {
+    const list = speakingArticles[currentLang] || [];
+    if (!list[index]) return;
+    if (confirm(`確定要刪除「${list[index].title}」這篇短文/對話嗎？`)) {
+        list.splice(index, 1);
+        saveSpeakingArticlesToStorage();
+        renderPage5ImportCenter();
+    }
+}
+
 // ==========================================
 // 7.5 ☁️ 跨裝置同步（透過 /api/sync 與 Upstash Redis）
 // ==========================================
@@ -1386,7 +1541,9 @@ function getFullSyncPayload() {
         userDatabase,
         userLinks,
         categories,
-        customLanguages
+        customLanguages,
+        speakingArticles,
+        writingParagraphs
     };
 }
 
@@ -1395,10 +1552,14 @@ function applySyncPayload(payload) {
     if (payload.userLinks) userLinks = payload.userLinks;
     if (payload.categories) categories = payload.categories;
     if (payload.customLanguages) customLanguages = payload.customLanguages;
+    if (payload.speakingArticles) speakingArticles = payload.speakingArticles;
+    if (payload.writingParagraphs) writingParagraphs = payload.writingParagraphs;
     saveToStorage();
     saveLinksToStorage();
     saveCategoriesToStorage();
     saveCustomLanguages();
+    saveSpeakingArticlesToStorage();
+    saveWritingParagraphsToStorage();
     renderLangGrid();
 }
 
@@ -1540,125 +1701,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const activePage = document.querySelector('.app-page.active');
         if (activePage && activePage.id === "page5") renderPage5ImportCenter();
         else updateUI();
-    };
-    // 口語分級切換 (已修正：由 updateUI 統一渲染樣式，避免元件遺失報錯)
-    window.switchSpeakingLevel = function (level) {
-        window.currentSpeakingLevel = level;
-        window.currentSpeakingIndex = 0;
-        updateUI();
-        // 渲染完 UI 後，確保模式按鈕的高亮位置正確
-        window.syncModeButtonsHighlight();
-    };
-
-    // 💡 新增：用來同步上方特訓模式選單高亮狀態的工具函式
-    window.syncModeButtonsHighlight = function () {
-        const modeButtons = document.querySelectorAll('.mode-btn');
-        if (modeButtons.length > 0) {
-            modeButtons.forEach(btn => {
-                if (btn.getAttribute('data-mode') === currentMode) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-        }
-    };
-
-    // 載入當前朗讀文本
-    window.loadSpeakingContent = function () {
-        const level = window.currentSpeakingLevel;
-        const index = window.currentSpeakingIndex;
-        const list = window.currentSpeakingData[level] || [];
-
-        const displayZone = document.getElementById('speakingContentDisplay');
-        const controls = document.getElementById('speakingControls');
-
-        if (level === 'paragraphs' || list.length <= 1) {
-            if (controls) controls.style.display = 'none';
-        } else {
-            if (controls) controls.style.display = 'flex';
-        }
-
-        if (list.length === 0) {
-            displayZone.innerText = "✨ 目前此層級沒有預設練習項目，您可以前往「寫作特訓」自訂文章匯入！";
-            return;
-        }
-
-        const targetText = list[index];
-        displayZone.innerHTML = `<span id="targetSpeechText">${targetText}</span>`;
-
-        // 綁定按鈕
-        const prevBtn = document.getElementById('prevSpeakBtn');
-        const nextBtn = document.getElementById('nextSpeakBtn');
-        if (prevBtn && nextBtn) {
-            prevBtn.onclick = () => { if (window.currentSpeakingIndex > 0) { window.currentSpeakingIndex--; window.loadSpeakingContent(); } };
-            nextBtn.onclick = () => { if (window.currentSpeakingIndex < list.length - 1) { window.currentSpeakingIndex++; window.loadSpeakingContent(); } };
-        }
-
-        window.initSpeakingAPI(targetText.trim().toLowerCase());
-    };
-
-    // Web Speech API 發音判定與修改建議
-    window.initSpeakingAPI = function (targetTextClean) {
-        const startRecordBtn = document.getElementById('startRecordBtn');
-        const speakResult = document.getElementById('speakResult');
-        const feedbackZone = document.getElementById('feedbackZone');
-        if (!startRecordBtn) return;
-
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            speakResult.innerText = "❌ 您的瀏覽器不支援 Web Speech API 語音辨識，建議使用 Chrome 行動版或桌機版。";
-            return;
-        }
-
-        const recognition = new SpeechRecognition();
-        recognition.lang = (currentLang === 'fr') ? 'fr-FR' : (currentLang === 'ja' ? 'ja-JP' : 'en-US');
-        recognition.interimResults = false;
-
-        startRecordBtn.onclick = () => {
-            speakResult.innerHTML = "🎙️ <span style='color: #dd6b20;'>正在聆聽中，請開始大聲朗讀全文...</span>";
-            feedbackZone.innerText = "";
-            startRecordBtn.style.backgroundColor = "#e53e3e";
-            startRecordBtn.innerText = "🛑 錄音中...";
-            recognition.start();
-        };
-
-        recognition.onresult = function (event) {
-            startRecordBtn.style.backgroundColor = "#48bb78";
-            startRecordBtn.innerText = "🎤 開始錄音朗讀";
-
-            const userSpokenText = event.results[0][0].transcript.trim();
-            const userSpokenClean = userSpokenText.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
-            const targetCleanNoPunct = targetTextClean.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
-
-            speakResult.innerHTML = `系統聽到的發音：<span style="color:#3182ce;">"${userSpokenText}"</span>`;
-
-            if (userSpokenClean === targetCleanNoPunct) {
-                feedbackZone.innerHTML = "<span style='color:#38a169; font-weight:bold;'>🎉 完美！發音極度清晰正確！</span>";
-            } else {
-                const targetWords = targetCleanNoPunct.split(' ');
-                const userWords = userSpokenClean.split(' ');
-                let missingWords = targetWords.filter(w => !userWords.includes(w));
-
-                let feedbackHTML = `<span style='color:#e53e3e; font-weight:bold;'>💡 貼心修改發音建議：</span><br>`;
-                if (missingWords.length > 0 && window.currentSpeakingLevel !== 'words') {
-                    feedbackHTML += `以下單字可能咬字較模糊或被漏讀了：<br><div style="margin-top:8px;">`;
-                    missingWords.forEach(w => {
-                        feedbackHTML += `<span style="color: #fff; background: #e53e3e; padding: 2px 8px; margin: 0 4px; border-radius: 4px; display:inline-block; font-size:0.9rem;">${w}</span>`;
-                    });
-                    feedbackHTML += `</div><span style="font-size:0.85rem; color:#718096; display:block; margin-top:8px;">提示：請注意這些單字的連音與輕重音，您可以放慢速度再試一次！</span>`;
-                } else {
-                    feedbackHTML += `發音有些微偏差。請特別注意連音或母音口型，放慢語速重新挑戰看看！`;
-                }
-                feedbackZone.innerHTML = feedbackHTML;
-            }
-        };
-
-        recognition.onerror = function () {
-            startRecordBtn.style.backgroundColor = "#48bb78";
-            startRecordBtn.innerText = "🎤 開始錄音朗讀";
-            speakResult.innerHTML = "<span style='color:#e53e3e;'>❌ 未偵測到清晰聲音，請確認麥克風權限並再試一次。</span>";
-        };
     };
     // 初始化頁面跳轉至第一頁
     navigateToPage(1);
