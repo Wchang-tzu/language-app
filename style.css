@@ -89,82 +89,6 @@ body {
     border-color: #333;
 }
 
-/* 2. 練習模式選擇器外層 */
-.mode-selector {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    gap: 8px !important;
-    padding: 6px 4px 14px 4px !important;
-    margin-bottom: 15px !important;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
-.mode-selector::-webkit-scrollbar {
-    display: none !important;
-}
-
-/* ==========================================
-   🎯 3. 練習模式單個按鈕樣式（完美視覺優化版）
-   ========================================== */
-.mode-btn {
-    flex: 1 1 0% !important;
-    min-width: 0 !important;
-    white-space: nowrap !important;
-    /* 💡 防止文字斷行變兩行 */
-    padding: 10px 4px !important;
-
-    /* 💡 修正：將基礎字級降為 13px，確保 4~5 個字的按鈕（如：五十音特訓）能完美並排不塞爆 */
-    font-size: 13px !important;
-    line-height: 1.3 !important;
-    font-weight: bold !important;
-
-    background: #f7fafc !important;
-    color: #4a5568 !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 12px !important;
-
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-    box-sizing: border-box !important;
-    text-align: center !important;
-    display: inline-flex !important;
-    flex-direction: column !important;
-    /* 上圖標/Emoji、下文字 */
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-/* 💡 新增：如果是直接寫在按鈕內開頭的純 Emoji 符號，讓它單獨放大，保持高質感圖標感 */
-.mode-btn::first-letter {
-    font-size: 18px !important;
-    line-height: 1.4 !important;
-}
-
-/* 按鈕內如果有包覆 <span> 的文字標籤 */
-.mode-btn span {
-    font-size: 12px !important;
-    display: block !important;
-    margin-top: 2px !important;
-    color: inherit !important;
-    font-weight: bold !important;
-}
-
-/* 滑鼠游標移過去的效果 */
-.mode-btn:hover {
-    background: #edf2f7 !important;
-}
-
-/* 🎯 當前被選中模式的按鈕樣式 */
-.mode-btn.active {
-    background: #2b6cb0 !important;
-    color: white !important;
-    border-color: #2b6cb0 !important;
-    box-shadow: 0 2px 6px rgba(43, 108, 176, 0.3) !important;
-}
-
 /* ==========================================
    🃏 測驗與卡片樣式
    ========================================== */
@@ -481,25 +405,49 @@ body {
 }
 
 /* ==========================================
-   📱 手機版 RWD 畫面防爆、防擠壓流暢優化
+   🎯 特訓模式按鈕容器與排版優化
    ========================================== */
-@media (max-width: 480px) {
+.mode-selector {
+    display: grid;
+    /* 💡 固定 4 欄：7 顆按鈕會穩定排成「4 個 + 3 個」剛好兩行，不受文字長短影響 */
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
 
-    /* 🛠️ 1. 模式選擇器防擠壓：維持不換行，改為優雅的左右滑動 */
+.mode-btn {
+    padding: 8px 6px;
+    font-size: 14px;
+    border: 1px solid #cbd5e0;
+    border-radius: 20px;
+    /* 膠囊造型 */
+    background-color: #ffffff;
+    color: #4a5568;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+
+.mode-btn.active {
+    background-color: #3182ce;
+    color: white;
+    border-color: #3182ce;
+}
+
+/* 響應式：手機版特別優化 */
+@media screen and (max-width: 480px) {
     .mode-selector {
-        display: flex !important;
-        flex-wrap: nowrap !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch;
-        gap: 8px !important;
-        padding-bottom: 10px !important;
+        gap: 8px;
+        /* 稍微縮小間距，讓兩行排得更緊湊 */
     }
 
     .mode-btn {
-        flex: 0 0 85px !important;
-        /* 固定每個按鈕寬度，不允許被壓縮 */
-        min-width: 85px !important;
-        white-space: nowrap !important;
+        font-size: 12px;
+        /* 微調字體防呆 */
+        padding: 8px 4px;
     }
 }
 

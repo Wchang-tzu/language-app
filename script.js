@@ -1501,13 +1501,19 @@ document.addEventListener("DOMContentLoaded", () => {
     renderLangGrid();
 
     // 特訓模式切換（第三頁使用）
-    // 修改特訓模式切換（約在 script.js 的最下方）
+    // ==========================================
+    // 🔄 特訓模式切換（完美整合寫作與口語發音）
+    // ==========================================
     modeButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             const targetMode = btn.getAttribute("data-mode");
 
-            // 這裡加上 || targetMode === 'writing' 確保新模式可以被順利切換！
-            if ((typeof modeMapping !== 'undefined' && modeMapping.includes(targetMode)) || targetMode === 'writing') {
+            // 💡 關鍵修正：這裡加上了 || targetMode === 'speaking'，口語模式就不會被攔截了！
+            if (
+                (typeof modeMapping !== 'undefined' && modeMapping.includes(targetMode)) ||
+                targetMode === 'writing' ||
+                targetMode === 'speaking'
+            ) {
                 currentMode = targetMode;
                 modeButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
