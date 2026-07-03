@@ -358,7 +358,7 @@ window.addNewCustomCategory = function () {
 
 // 💡 第三頁（特訓模式切換與更新）
 function updateUI() {
-    if (siteTitle) siteTitle.innerText = `🌍 旅遊${getLangMeta(currentLang).name}隨身包`;
+    if (siteTitle) siteTitle.innerText = `🌍${getLangMeta(currentLang).name}學習隨身包`;
 
     // 重新抓取容器，維持 SPA 特性
     mainContent = document.getElementById("mainContent");
