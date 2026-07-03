@@ -66,93 +66,12 @@ body {
     gap: 10px;
 }
 
-.category-grid .cat-btn {
-    width: 100%;
-    text-align: left;
-    padding: 15px;
-    font-size: 15px;
-    border-radius: 10px;
-}
-
-/* ==========================================
-   📝 輸入表單與下拉選單
-   ========================================== */
-.input-section {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #e9ecef;
-}
-
-.input-section h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 16px;
-    color: #495057;
-}
-
-.input-section input,
-.input-section select {
-    display: block;
-    width: 100%;
-    margin: 8px 0;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ced4da;
-    box-sizing: border-box;
-}
-
-.input-group {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin: 8px 0;
-}
-
-.input-group input {
-    margin: 0;
-    flex: 1;
-}
-
-.search-helper-btn {
-    padding: 10px 12px;
-    background-color: #e9ecef;
-    border: 1px solid #ced4da;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.2s;
-}
-
-.search-helper-btn:hover {
-    background-color: #dee2e6;
-    border-color: #b1bbc4;
-}
-
-#addBtn {
-    width: 100%;
-    padding: 10px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 8px;
-}
-
-#addBtn:hover {
-    background-color: #218838;
-}
-
 /* ==========================================
    🎯 按鈕樣式
    ========================================== */
 
-/* 1. 語系按鈕與情境按鈕的基礎設定 */
-.lang-btn,
-.cat-btn {
+/* 1. 語系按鈕的基礎設定 */
+.lang-btn {
     white-space: nowrap;
     padding: 10px 16px;
     border: 1px solid #ddd;
@@ -168,19 +87,6 @@ body {
     background: #333;
     color: white;
     border-color: #333;
-}
-
-.cat-btn {
-    border-radius: 20px;
-    font-size: 13px;
-    padding: 6px 14px;
-}
-
-.cat-btn.active {
-    background: #e6f4ea;
-    color: #137333;
-    border-color: #137333;
-    font-weight: bold;
 }
 
 /* 2. 練習模式選擇器外層 */
@@ -397,42 +303,6 @@ body {
     text-align: center;
 }
 
-.game-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.memory-card {
-    height: 80px;
-    background: #343a40;
-    color: transparent;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    text-align: center;
-    padding: 5px;
-    user-select: none;
-}
-
-.memory-card.flipped {
-    background: #fff3cd;
-    color: #333;
-    border: 2px solid #ffeeba;
-}
-
-.memory-card.matched {
-    background: #d4edda !important;
-    color: #155724 !important;
-    border: 2px solid #c8e6c9;
-    visibility: hidden;
-}
-
 /* ==========================================
    📊 即時看板與新聞樣式
    ========================================== */
@@ -508,21 +378,6 @@ body {
     font-weight: bold;
 }
 
-/* 新聞列表項目 */
-#newsList li {
-    padding: 10px 12px;
-    border-bottom: 1px solid #edf2f7;
-    cursor: pointer;
-    transition: background 0.2s ease;
-    list-style: none;
-    font-size: 14px;
-}
-
-#newsList li:hover {
-    background-color: #f7fafc;
-    color: #2b6cb0;
-}
-
 /* 彈出視窗背景遮罩 */
 .modal {
     position: fixed;
@@ -573,41 +428,6 @@ body {
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-/* 星座運勢 */
-.horoscope-box {
-    background: white;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    margin-top: 10px;
-}
-
-.astro-select {
-    padding: 4px 8px;
-    font-size: 12px;
-    border-radius: 6px;
-    border: 1px solid #cbd5e0;
-    background: #fff;
-    color: #4a5568;
-    cursor: pointer;
-}
-
-.horoscope-content {
-    font-size: 13px;
-    line-height: 1.5;
-    color: #2d3748;
-}
-
-.lucky-item {
-    display: inline-block;
-    background-color: #feebc8;
-    color: #c05621;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: bold;
-    font-size: 11px;
 }
 
 /* ==========================================
@@ -665,36 +485,7 @@ body {
    ========================================== */
 @media (max-width: 480px) {
 
-    /* 🛠️ 1. 修正「快速外部引進」：輸入框改為垂直堆疊 */
-    .quick-import-row {
-        flex-direction: column !important;
-        gap: 8px !important;
-    }
-
-    .quick-import-row input {
-        width: 100% !important;
-        box-sizing: border-box !important;
-    }
-
-    /* 🛠️ 2. 修正「引進功能底部選單」：讓下拉選單與引進按鈕在手機上也垂直排列 */
-    /* 核心原理：鎖定引進區塊內（.site-links-container）所有的 flex 並排區塊 */
-    .site-links-container div,
-    .site-links-container .input-group {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        width: 100% !important;
-        gap: 8px !important;
-    }
-
-    /* 確保選單、按鈕全部 100% 撐滿，不溢出 */
-    .site-links-container select,
-    .site-links-container button {
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-    }
-
-    /* 🛠️ 3. 模式選擇器防擠壓：維持不換行，改為優雅的左右滑動 */
+    /* 🛠️ 1. 模式選擇器防擠壓：維持不換行，改為優雅的左右滑動 */
     .mode-selector {
         display: flex !important;
         flex-wrap: nowrap !important;
@@ -713,80 +504,8 @@ body {
 }
 
 /* ==========================================
-   🌐 雙層選單專用容器
+   🌐 採集靈感庫卡片樣式（第五頁）
    ========================================== */
-.multi-level-news-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 12px;
-    border-left: 3px solid #3182ce;
-    padding-left: 10px;
-    margin-top: 5px;
-}
-
-.multi-level-news-controls .news-tabs {
-    border-bottom: none !important;
-    padding-bottom: 0 !important;
-    margin-bottom: 2px !important;
-}
-
-/* ==========================================
-   🌐 第五頁：快捷外部貼上與推薦站樣式 (合體優化版)
-   ========================================== */
-.site-links-container {
-    background: #eef2ff;
-    /* 保持淡藍色，與上方手動輸入做區隔 */
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    border: 1px solid #c7d2fe;
-    /* 配合淡藍色的邊框 */
-}
-
-/* 確保快速引進欄位內的 input 與 select 寬度與間距完美 */
-.site-links-container input,
-.site-links-container select {
-    box-sizing: border-box;
-}
-
-.site-badges {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-    flex-wrap: wrap;
-    /* 💡 關鍵修正：當新增了 Tatoeba 等更多網站時，允許手機版自動換行，按鈕才不會被切掉 */
-}
-
-.site-badge {
-    padding: 6px 14px;
-    border-radius: 20px;
-    color: white;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 13px;
-    /* 稍微縮小字體，確保在手機上排版緊湊漂亮 */
-    display: inline-block;
-    transition: transform 0.1s ease;
-}
-
-.site-badge:hover {
-    transform: scale(1.05);
-    /* 滑鼠滑過微幅放大，增加互動質感 */
-}
-
-.site-badge.duo {
-    background-color: #58cc02;
-}
-
-.site-badge.mem {
-    background-color: #b81d24;
-}
-
-.site-badge.quiz {
-    background-color: #4257b2;
-}
-
 .inspiration-list {
     display: flex;
     flex-direction: column;
