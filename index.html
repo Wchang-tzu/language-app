@@ -13,29 +13,26 @@
     <div class="container">
         <h2 id="siteTitle" style="text-align: center; margin-top: 0; color: #2b6cb0;">🌍 多語言隨身包</h2>
 
-        <!-- 【第一頁：語系】 -->
         <div id="page1" class="app-page active">
             <h3 class="page-title">🎯 請選擇你想學習的語言</h3>
             <div id="langGrid" class="lang-grid"></div>
             <div style="text-align: center; margin-top: 30px;">
-                <!-- 點擊前往第二頁（情境頁） -->
                 <button id="toPage2Btn" class="btn-primary" onclick="navigateToPage(2)">選好了，前往情境 ➡️</button>
             </div>
         </div>
 
-        <!-- 【第二頁：情境】 💡 調整到第二順位 -->
         <div id="page2" class="app-page">
             <h3 class="page-title">🎯 請選擇你想學習的情境</h3>
             <div id="categoryContainer" class="category-grid"></div>
         </div>
 
-        <!-- 【第三頁：練習】 💡 調整到第三順位 -->
         <div id="page3" class="app-page">
             <h3 class="page-title">⚡ 請選擇練習模式</h3>
             <div class="mode-selector" style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
                 <button class="mode-btn active" data-mode="dialogue">🎴 字卡認識</button>
                 <button class="mode-btn" data-mode="listening">🎧 聽力測驗</button>
                 <button class="mode-btn" data-mode="cloze">⌨️ 智慧拼寫</button>
+                <button class="mode-btn" data-mode="speaking">🗣️ 口語發音</button>
                 <button class="mode-btn" data-mode="conjugation">✍️ 動詞特訓</button>
                 <button class="mode-btn" data-mode="kana">🎌 五十音特訓</button>
                 <button class="mode-btn" data-mode="writing">✍️ 寫作特訓</button>
@@ -44,7 +41,6 @@
             <div id="mainContent" class="practice-zone"></div>
         </div>
 
-        <!-- 【第四頁：看板】 -->
         <div id="page4" class="app-page">
             <div class="live-dashboard">
                 <div class="dashboard-header">
@@ -70,13 +66,9 @@
             </div>
         </div>
 
-        <!-- 【第五頁：引進庫】 -->
-        <!-- 💡 此頁內容完全由 script.js 的 renderPage5ImportCenter() 動態渲染（含同步、字句管理、私房網站管理、採集靈感卡片），
-             故此處保持空容器即可，不需要靜態表單，避免出現永遠不會被綁定事件、進頁就被覆蓋的死元素。 -->
         <div id="page5" class="app-page"></div>
     </div>
 
-    <!-- 新聞模態視窗 -->
     <div id="newsModal" class="modal" style="display: none;">
         <div class="modal-content">
             <span class="close-modal-btn" onclick="closeNewsModal()">&times;</span>
@@ -86,7 +78,6 @@
         </div>
     </div>
 
-    <!-- 底部導覽列 💡 已修正順序與導覽對應頁數 -->
     <div class="bottom-nav">
         <button class="nav-item active" onclick="navigateToPage(1)"><span>🌐</span>語系</button>
         <button class="nav-item" onclick="navigateToPage(2)"><span>🧳</span>情境</button>
@@ -95,7 +86,6 @@
         <button class="nav-item" onclick="navigateToPage(5)"><span>📥</span>引進庫</button>
     </div>
 
-    <!-- ✍️ 寫作特訓「匯出成 Word」功能所需的瀏覽器端 docx 產生器（僅在按下匯出按鈕時才會用到，不影響其他功能） -->
     <script src="https://unpkg.com/docx@8.2.4/build/index.js"></script>
     <script src="script.js"></script>
 </body>

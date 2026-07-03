@@ -92,7 +92,13 @@ let currentKanaQuiz = null;
 // 2. 全域變數與快取
 // ==========================================
 let userDatabase = JSON.parse(localStorage.getItem("multiLangDynamicDB_v8")) || defaultDatabase;
-
+// ==========================================
+// 📥 全域自訂暫存區（用於寫作練習匯入朗讀）
+// ==========================================
+let importedWritingText = "";
+window.currentSpeakingLevel = 'words';
+window.currentSpeakingIndex = 0;
+window.currentClozeAnswers = [];
 // 🌐 語言中繼資料：預設 7 種語言 + 使用者自訂新增的語言
 const defaultLangMeta = [
     { code: "ja", name: "日文", icon: "🇯🇵", speechLang: "ja-JP" },
@@ -151,7 +157,34 @@ if (!categories.some(c => c.id === "rare")) {
     categories.push({ id: "rare", name: "生僻字", icon: "🧠" });
     localStorage.setItem("multiLangCategories_v8", JSON.stringify(categories));
 }
-
+// 可以在 defaultDatabase 結尾或合適處加上情境長文章擴充（此處以測試為目的）
+const contextLongTexts = {
+    en: {
+        restaurant: [
+            {
+                type: "dialogue",
+                title: "在餐廳點餐 (Ordering Food)",
+                text: "A: Welcome to our restaurant. Are you ready to {order}?\nB: Yes, I would like the beef {steak}, please.\nA: Excellent choice. How would you like that {cooked}?\nB: Medium, please. And could I also get a glass of red {wine}?"
+            }
+        ],
+        hotel: [
+            {
+                type: "article",
+                title: "飯店退房須知 (Check-out Rules)",
+                text: "Please note that the {checkout} time is 11:00 AM. If you need to {extend} your stay, please contact the front desk in advance. Additional {charges} may apply for late departures. Thank you for staying with us."
+            }
+        ]
+    },
+    fr: {
+        restaurant: [
+            {
+                type: "dialogue",
+                title: "Au Restaurant (在餐廳)",
+                text: "A: Bienvenue. Êtes-vous prêt à {commander}?\nB: Oui, je voudrais un {steak} de bœuf, s'il vous plaît.\nA: Quelle cuisson pour le steak? {Saignant} ou à point?\nB: À point, s'il vous plaît."
+            }
+        ]
+    }
+};
 // DOM 元素快取 (加上安全防呆，免得 HTML 還沒完全渲染出來)
 let mainContent = document.getElementById("mainContent");
 let siteTitle = document.getElementById("siteTitle");
@@ -377,7 +410,70 @@ function updateUI() {
     else if (currentMode === "listening") renderListeningMode();
     else if (currentMode === "kana") renderKanaMode();
     else if (currentMode === "writing") renderWritingMode();
+    else if (currentMode === 'speaking') {
+        let isImported = importedWritingText !== "";
 
+        // 分級獲取目前的語句數據
+        let catTextList = (currentCatData && currentCatData.list) ? currentCatData.list.map(i => i.text) : ["No data available"];
+
+        const data = isImported ? {
+            words: [], sentences: [], paragraphs: [importedWritingText]
+        } : {
+            words: catTextList.filter(t => t.split(' ').length <= 2), // 簡易分類：兩個單字以內算單字
+            sentences: catTextList.filter(t => t.split(' ').length > 2 && t.split(' ').length <= 8),
+            paragraphs: catTextList.filter(t => t.split(' ').length > 8)
+        };
+
+        // 防呆補丁：如果分類出來是空的，給予預設
+        if (!isImported && data.words.length === 0) data.words = catTextList;
+
+        mainContent.innerHTML = `
+            <div class="practice-zone">
+                <div class="challenge-card">
+                    <h3 style="margin-top:0; color:#2b6cb0;">🗣️ 口語發音與朗誦特訓</h3>
+                    
+                    ${isImported ? `
+                        <div style="background: #ebf8ff; color: #2b6cb0; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #3182ce;">
+                            <span>📝 正在朗誦：您從「寫作練習」匯入的自訂文章</span>
+                            <button id="clearImportBtn" style="background: #e53e3e; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">返回預設</button>
+                        </div>
+                    ` : ''}
+
+                    <div class="speaking-tabs" style="display: ${isImported ? 'none' : 'flex'}; gap: 10px; margin-bottom: 20px;">
+                        <button class="tab-btn ${window.currentSpeakingLevel === 'words' ? 'active' : ''}" onclick="switchSpeakingLevel('words')">🔤 單字</button>
+                        <button class="tab-btn ${window.currentSpeakingLevel === 'sentences' ? 'active' : ''}" onclick="switchSpeakingLevel('sentences')">💬 句子/對話</button>
+                        <button class="tab-btn ${window.currentSpeakingLevel === 'paragraphs' ? 'active' : ''}" onclick="switchSpeakingLevel('paragraphs')">📄 文章朗讀</button>
+                    </div>
+
+                    <div id="speakingContentDisplay" style="background: #f7fafc; padding: 25px; border-radius: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 20px; font-size: 1.2rem; text-align: center; line-height: 1.6; font-weight: 600; min-height: 60px; display:flex; align-items:center; justify-content:center;">
+                        </div>
+
+                    <div id="speakingControls" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                        <button id="prevSpeakBtn" class="btn-primary" style="background:#718096;">⬅️ 上一題</button>
+                        <button id="nextSpeakBtn" class="btn-primary" style="background:#718096;">下一題 ➡️</button>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 25px;">
+                        <button id="startRecordBtn" class="btn-primary" style="background-color: #48bb78; padding: 12px 30px; font-size: 1.1rem; border-radius: 25px;">
+                            🎤 開始錄音朗讀
+                        </button>
+                        <div id="speakResult" style="margin-top: 20px; font-weight: bold; font-size: 1.1rem; color: #4a5568;"></div>
+                        <div id="feedbackZone" style="margin-top: 15px; font-size: 1rem; line-height: 1.5;"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        if (isImported) {
+            document.getElementById('clearImportBtn').onclick = () => { importedWritingText = ""; updateUI(); };
+            window.currentSpeakingLevel = 'paragraphs';
+        }
+
+        window.currentSpeakingData = data;
+
+        // 綁定內部分頁與辨識控制
+        window.loadSpeakingContent();
+    }
     // 同步重新整理第四頁看板（如果存在的話）
     renderNewsLinks();
     renderMyLinks();
@@ -1439,7 +1535,125 @@ document.addEventListener("DOMContentLoaded", () => {
         if (activePage && activePage.id === "page5") renderPage5ImportCenter();
         else updateUI();
     };
+    // 口語分級切換 (已修正：由 updateUI 統一渲染樣式，避免元件遺失報錯)
+    window.switchSpeakingLevel = function (level) {
+        window.currentSpeakingLevel = level;
+        window.currentSpeakingIndex = 0;
+        updateUI();
+        // 渲染完 UI 後，確保模式按鈕的高亮位置正確
+        window.syncModeButtonsHighlight();
+    };
 
+    // 💡 新增：用來同步上方特訓模式選單高亮狀態的工具函式
+    window.syncModeButtonsHighlight = function () {
+        const modeButtons = document.querySelectorAll('.mode-btn');
+        if (modeButtons.length > 0) {
+            modeButtons.forEach(btn => {
+                if (btn.getAttribute('data-mode') === currentMode) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+    };
+
+    // 載入當前朗讀文本
+    window.loadSpeakingContent = function () {
+        const level = window.currentSpeakingLevel;
+        const index = window.currentSpeakingIndex;
+        const list = window.currentSpeakingData[level] || [];
+
+        const displayZone = document.getElementById('speakingContentDisplay');
+        const controls = document.getElementById('speakingControls');
+
+        if (level === 'paragraphs' || list.length <= 1) {
+            if (controls) controls.style.display = 'none';
+        } else {
+            if (controls) controls.style.display = 'flex';
+        }
+
+        if (list.length === 0) {
+            displayZone.innerText = "✨ 目前此層級沒有預設練習項目，您可以前往「寫作特訓」自訂文章匯入！";
+            return;
+        }
+
+        const targetText = list[index];
+        displayZone.innerHTML = `<span id="targetSpeechText">${targetText}</span>`;
+
+        // 綁定按鈕
+        const prevBtn = document.getElementById('prevSpeakBtn');
+        const nextBtn = document.getElementById('nextSpeakBtn');
+        if (prevBtn && nextBtn) {
+            prevBtn.onclick = () => { if (window.currentSpeakingIndex > 0) { window.currentSpeakingIndex--; window.loadSpeakingContent(); } };
+            nextBtn.onclick = () => { if (window.currentSpeakingIndex < list.length - 1) { window.currentSpeakingIndex++; window.loadSpeakingContent(); } };
+        }
+
+        window.initSpeakingAPI(targetText.trim().toLowerCase());
+    };
+
+    // Web Speech API 發音判定與修改建議
+    window.initSpeakingAPI = function (targetTextClean) {
+        const startRecordBtn = document.getElementById('startRecordBtn');
+        const speakResult = document.getElementById('speakResult');
+        const feedbackZone = document.getElementById('feedbackZone');
+        if (!startRecordBtn) return;
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            speakResult.innerText = "❌ 您的瀏覽器不支援 Web Speech API 語音辨識，建議使用 Chrome 行動版或桌機版。";
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = (currentLang === 'fr') ? 'fr-FR' : (currentLang === 'ja' ? 'ja-JP' : 'en-US');
+        recognition.interimResults = false;
+
+        startRecordBtn.onclick = () => {
+            speakResult.innerHTML = "🎙️ <span style='color: #dd6b20;'>正在聆聽中，請開始大聲朗讀全文...</span>";
+            feedbackZone.innerText = "";
+            startRecordBtn.style.backgroundColor = "#e53e3e";
+            startRecordBtn.innerText = "🛑 錄音中...";
+            recognition.start();
+        };
+
+        recognition.onresult = function (event) {
+            startRecordBtn.style.backgroundColor = "#48bb78";
+            startRecordBtn.innerText = "🎤 開始錄音朗讀";
+
+            const userSpokenText = event.results[0][0].transcript.trim();
+            const userSpokenClean = userSpokenText.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
+            const targetCleanNoPunct = targetTextClean.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
+
+            speakResult.innerHTML = `系統聽到的發音：<span style="color:#3182ce;">"${userSpokenText}"</span>`;
+
+            if (userSpokenClean === targetCleanNoPunct) {
+                feedbackZone.innerHTML = "<span style='color:#38a169; font-weight:bold;'>🎉 完美！發音極度清晰正確！</span>";
+            } else {
+                const targetWords = targetCleanNoPunct.split(' ');
+                const userWords = userSpokenClean.split(' ');
+                let missingWords = targetWords.filter(w => !userWords.includes(w));
+
+                let feedbackHTML = `<span style='color:#e53e3e; font-weight:bold;'>💡 貼心修改發音建議：</span><br>`;
+                if (missingWords.length > 0 && window.currentSpeakingLevel !== 'words') {
+                    feedbackHTML += `以下單字可能咬字較模糊或被漏讀了：<br><div style="margin-top:8px;">`;
+                    missingWords.forEach(w => {
+                        feedbackHTML += `<span style="color: #fff; background: #e53e3e; padding: 2px 8px; margin: 0 4px; border-radius: 4px; display:inline-block; font-size:0.9rem;">${w}</span>`;
+                    });
+                    feedbackHTML += `</div><span style="font-size:0.85rem; color:#718096; display:block; margin-top:8px;">提示：請注意這些單字的連音與輕重音，您可以放慢速度再試一次！</span>`;
+                } else {
+                    feedbackHTML += `發音有些微偏差。請特別注意連音或母音口型，放慢語速重新挑戰看看！`;
+                }
+                feedbackZone.innerHTML = feedbackHTML;
+            }
+        };
+
+        recognition.onerror = function () {
+            startRecordBtn.style.backgroundColor = "#48bb78";
+            startRecordBtn.innerText = "🎤 開始錄音朗讀";
+            speakResult.innerHTML = "<span style='color:#e53e3e;'>❌ 未偵測到清晰聲音，請確認麥克風權限並再試一次。</span>";
+        };
+    };
     // 初始化頁面跳轉至第一頁
     navigateToPage(1);
 });

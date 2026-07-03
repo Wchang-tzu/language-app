@@ -563,3 +563,44 @@ body {
 .add-to-pack-btn:hover {
     background: #2b6cb0;
 }
+
+/* ==========================================\
+   🗣️ 口語練習與克漏字進階美化樣式
+   ========================================== */
+.speaking-tabs {
+    display: flex;
+    background: #edf2f7;
+    padding: 4px;
+    border-radius: 8px;
+    gap: 4px;
+}
+
+.tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #4a5568;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+    background: white;
+    color: #2b6cb0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.article-box {
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+.cloze-input:focus {
+    outline: none;
+    border-bottom: 2px solid #2b6cb0 !important;
+    background: #ebf8ff !important;
+}
