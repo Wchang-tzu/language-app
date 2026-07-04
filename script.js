@@ -116,6 +116,9 @@ async function loadDatabase() {
     } finally {
         // 載入完成後（不論成功與否）重新渲染目前畫面，
         // 避免資料還沒讀完就先顯示「沒有資料」的空畫面。
+        const loadingBanner = document.getElementById("globalLoadingBanner");
+        if (loadingBanner) loadingBanner.style.display = "none";
+
         renderLangGrid();
         const activePage = document.querySelector('.app-page.active');
         if (activePage && activePage.id === "page5") renderPage5ImportCenter();
@@ -212,33 +215,6 @@ if (!categories.some(c => c.id === "rare")) {
     categories.push({ id: "rare", name: "生僻字", icon: "🧠" });
     localStorage.setItem("multiLangCategories_v8", JSON.stringify(categories));
 }
-const contextLongTexts = {
-    en: {
-        restaurant: [
-            {
-                type: "dialogue",
-                title: "在餐廳點餐 (Ordering Food)",
-                text: "A: Welcome to our restaurant. Are you ready to {order}?\nB: Yes, I would like the beef {steak}, please.\nA: Excellent choice. How would you like that {cooked}?\nB: Medium, please. And could I also get a glass of red {wine}?"
-            }
-        ],
-        hotel: [
-            {
-                type: "article",
-                title: "飯店退房須知 (Check-out Rules)",
-                text: "Please note that the {checkout} time is 11:00 AM. If you need to {extend} your stay, please contact the front desk in advance. Additional {charges} may apply for late departures. Thank you for staying with us."
-            }
-        ]
-    },
-    fr: {
-        restaurant: [
-            {
-                type: "dialogue",
-                title: "Au Restaurant (在餐廳)",
-                text: "A: Bienvenue. Êtes-vous prêt à {commander}?\nB: Oui, je voudrais un {steak} de bœuf, s'il vous plaît.\nA: Quelle cuisson pour le steak? {Saignant} ou à point?\nB: À point, s'il vous plaît."
-            }
-        ]
-    }
-};
 // DOM 元素快取 (加上安全防呆，免得 HTML 還沒完全渲染出來)
 let mainContent = document.getElementById("mainContent");
 let siteTitle = document.getElementById("siteTitle");
@@ -352,9 +328,15 @@ function renderLangGrid() {
 
     const allLangs = getAllLanguages();
 
-    grid.innerHTML = allLangs.map(lang => `
-        <button class="lang-btn ${lang.code === currentLang ? 'active' : ''}" onclick="selectLanguage('${lang.code}')">${lang.icon} ${lang.name}</button>
-    `).join('') + `
+    grid.innerHTML = allLangs.map(lang => {
+        const isCustom = lang.code.startsWith('custom_');
+        return `
+        <div style="position:relative;">
+            <button class="lang-btn ${lang.code === currentLang ? 'active' : ''}" onclick="selectLanguage('${lang.code}')" style="width:100%;">${lang.icon} ${lang.name}</button>
+            ${isCustom ? `<button onclick="deleteLanguageFlow('${lang.code}')" title="刪除這個自訂語言" style="position:absolute; top:-6px; right:-6px; background:#e53e3e; color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:11px; line-height:1; cursor:pointer;">✕</button>` : ''}
+        </div>
+    `;
+    }).join('') + `
         <button class="lang-btn" onclick="addNewLanguageFlow()" style="border-style:dashed; color:#718096;">➕ 新增語言</button>
     `;
 }
@@ -368,6 +350,22 @@ window.selectLanguage = function (code) {
     if (activePage && activePage.id === "page5") renderPage5ImportCenter();
     else if (activePage && activePage.id === "page2") renderCategoryPage();
     else updateUI();
+};
+
+// 刪除自訂語言（系統預設的 7 種語言不能刪，只有自己新增的才能刪）
+// 底下的字句/短文/影音題目資料不會被連帶刪除，只是這個語言選項會從清單消失
+window.deleteLanguageFlow = function (code) {
+    const lang = customLanguages.find(l => l.code === code);
+    if (!lang) return;
+
+    if (confirm(`確定要刪除語言「${lang.icon} ${lang.name}」嗎？\n（這個語言底下新增過的字句、短文、影音題目不會被刪除，只是這個語言選項會消失）`)) {
+        customLanguages = customLanguages.filter(l => l.code !== code);
+        saveCustomLanguages();
+        if (currentLang === code) {
+            currentLang = "ja";
+        }
+        renderLangGrid();
+    }
 };
 
 // 新增自訂語言的彈窗流程
@@ -1502,6 +1500,19 @@ function renderPage5ImportCenter() {
             </div>
         </div>
 
+        <div class="import-card" style="background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05); margin-bottom:25px; border: 2px solid #f6ad55;">
+            <h3 style="margin:0 0 12px 0; color:#c05621; font-size:18px;">📦 資料備份</h3>
+            <p style="font-size:13px; color:#718096; margin-bottom:12px; line-height:1.6;">
+                這份跟「☁️ 跨裝置同步」不一樣：同步是為了讓兩台裝置互通，備份是為了**防止資料整個消失**（例如清除瀏覽器資料、換裝置忘記先同步）。建議偶爾匯出一份存到雲端硬碟或電腦裡。
+            </p>
+            <div style="display:flex; gap:10px;">
+                <button id="exportBackupBtn" style="flex:1; background:#f6ad55; color:#fff; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">📤 匯出全部資料</button>
+                <button id="importBackupBtn" style="flex:1; background:#718096; color:#fff; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">📥 匯入備份檔案</button>
+            </div>
+            <input type="file" id="importBackupFile" accept="application/json" style="display:none;">
+            <div id="backupStatusText" style="margin-top:10px; font-size:12px; color:#a0aec0; text-align:center;"></div>
+        </div>
+
         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
 
         <div class="inspiration-section">
@@ -1541,6 +1552,17 @@ function renderPage5ImportCenter() {
     document.getElementById("p5AddLinkBtn").addEventListener("click", addLinkFromPage5);
     document.getElementById("p5AddSpeakBtn").addEventListener("click", addSpeakingArticleFromPage5);
     document.getElementById("p5AddVideoWritingBtn").addEventListener("click", addVideoWritingItemFromPage5);
+
+    const exportBackupBtnEl = document.getElementById("exportBackupBtn");
+    const importBackupBtnEl = document.getElementById("importBackupBtn");
+    const importBackupFileEl = document.getElementById("importBackupFile");
+    if (exportBackupBtnEl) exportBackupBtnEl.addEventListener("click", exportFullBackup);
+    if (importBackupBtnEl && importBackupFileEl) {
+        importBackupBtnEl.addEventListener("click", () => importBackupFileEl.click());
+        importBackupFileEl.addEventListener("change", (e) => {
+            if (e.target.files && e.target.files[0]) importFullBackupFile(e.target.files[0]);
+        });
+    }
 
     // ☁️ 同步按鈕事件綁定
     const syncCodeInputEl = document.getElementById("syncCodeInput");
@@ -1818,6 +1840,52 @@ function setSyncLocalMeta(patch) {
 function formatSyncTime(timestamp) {
     if (!timestamp) return "尚無紀錄";
     return new Date(timestamp).toLocaleString();
+}
+
+// 📦 資料備份：匯出成 JSON 檔案／從 JSON 檔案匯入
+// 跟雲端同步共用同一份 payload 邏輯，但存成本機檔案，不需要同步碼、也不需要網路連線
+function exportFullBackup() {
+    const payload = { ...getFullSyncPayload(), exportedAt: Date.now() };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const dateStr = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `language-app-backup-${dateStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    const statusEl = document.getElementById("backupStatusText");
+    if (statusEl) statusEl.innerText = "✅ 已匯出・" + new Date().toLocaleString();
+}
+
+function importFullBackupFile(file) {
+    const statusEl = document.getElementById("backupStatusText");
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        let data;
+        try {
+            data = JSON.parse(e.target.result);
+        } catch (err) {
+            alert("匯入失敗，這不是有效的備份檔案：" + err.message);
+            return;
+        }
+
+        if (!confirm("確定要用這份備份檔案覆蓋目前這台裝置上所有的資料嗎？\n（這個動作無法復原，建議先匯出目前的資料當作備份再繼續）")) {
+            return;
+        }
+
+        applySyncPayload(data);
+        if (statusEl) statusEl.innerText = "✅ 已匯入・" + new Date().toLocaleString();
+        alert("✅ 已成功匯入備份資料！");
+        renderPage5ImportCenter();
+    };
+    reader.onerror = () => {
+        alert("讀取檔案失敗，請確認檔案是否正常。");
+    };
+    reader.readAsText(file);
 }
 
 function getFullSyncPayload() {
