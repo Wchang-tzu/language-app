@@ -91,26 +91,34 @@ let currentKanaQuiz = null;
 // ==========================================
 // 2. 全域變數與快取
 // ==========================================
-let userDatabase = {}; // 一開始是空的
+let userDatabase = {}; // 一開始是空的，loadDatabase() 會同步補上，不會有畫面閃爍空白的問題
+
+// 🎬 影音寫作題目庫（跟一般單字庫是分開的資料結構，因為欄位不一樣：多了 videoUrl/audioSrc/prompt）
+let videoWritingItems = {};
 
 // 網頁啟動時載入資料
-// 🛠️ 修正：優先讀取使用者存在 localStorage 的資料（新增/編輯過的內容），
-// 只有在使用者從來沒有存過任何資料時，才去抓 database.json 當作初始範例資料。
-// 這樣使用者新增的字句才不會在重新整理頁面後被 database.json 蓋掉、憑空消失。
+// 🛠️ 修正：
+// 1. 單字庫（userDatabase）優先讀 localStorage，沒有的話用 defaultDatabase 當初始範例（這一步完全同步，不會有非同步造成的畫面空白）
+// 2. 影音寫作題目（videoWritingItems）是完全獨立的另一份資料，優先讀 localStorage，沒有的話才去抓 database.json 當初始範例
+//    （之前的版本誤把 database.json 拿來填 userDatabase，但兩者欄位形狀完全不同，會讓字卡/聽力/拼寫模式收到缺欄位的資料）
 async function loadDatabase() {
     try {
-        const saved = localStorage.getItem("multiLangDynamicDB_v8");
-        if (saved) {
-            userDatabase = JSON.parse(saved);
-            console.log("已從本機（localStorage）讀取你之前儲存的資料！");
+        const savedDB = localStorage.getItem("multiLangDynamicDB_v8");
+        userDatabase = savedDB ? JSON.parse(savedDB) : JSON.parse(JSON.stringify(defaultDatabase));
+
+        const savedVideoItems = localStorage.getItem("multiLangVideoWritingItems_v1");
+        if (savedVideoItems) {
+            videoWritingItems = JSON.parse(savedVideoItems);
         } else {
             const response = await fetch('database.json');
-            userDatabase = await response.json();
-            console.log("本機尚無資料，已載入預設範例資料庫！");
+            videoWritingItems = await response.json();
+            saveVideoWritingItemsToStorage();
+            console.log("已載入 database.json 作為影音寫作題目的初始範例！");
         }
     } catch (error) {
-        console.error("無法載入資料庫，請檢查格式：", error);
-        userDatabase = userDatabase || {};
+        console.error("初始化資料庫時發生錯誤：", error);
+        if (!userDatabase || Object.keys(userDatabase).length === 0) userDatabase = JSON.parse(JSON.stringify(defaultDatabase));
+        if (!videoWritingItems) videoWritingItems = {};
     } finally {
         // 載入完成後（不論成功與否）重新渲染目前畫面，
         // 避免資料還沒讀完就先顯示「沒有資料」的空畫面。
@@ -122,7 +130,7 @@ async function loadDatabase() {
     }
 }
 
-// 確保網頁一打開就去讀取 JSON
+// 確保網頁一打開就去讀取資料
 document.addEventListener("DOMContentLoaded", loadDatabase);
 
 // ==========================================
@@ -130,6 +138,26 @@ document.addEventListener("DOMContentLoaded", loadDatabase);
 // ==========================================
 let speakingArticles = JSON.parse(localStorage.getItem("multiLangSpeakingArticles_v1")) || {};
 let speakingIndex = 0;
+
+// ==========================================
+// 🎬 影音寫作特訓：引進影片/音檔，依此出寫作題目 + AI 批改
+// ==========================================
+let videoWritingIndex = 0;
+let writingSubMode = "word"; // "word" = 依單字出題（既有功能）；"video" = 依影音出題（新功能）
+
+function saveVideoWritingItemsToStorage() {
+    localStorage.setItem("multiLangVideoWritingItems_v1", JSON.stringify(videoWritingItems));
+}
+
+// 把常見的 YouTube 網址格式（觀看網址、短網址）轉成可以嵌入 iframe 的 embed 網址
+function toEmbedUrl(url) {
+    if (!url) return "";
+    const watchMatch = url.match(/[?&]v=([^&]+)/);
+    if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
+    const shortMatch = url.match(/youtu\.be\/([^?&]+)/);
+    if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
+    return url; // 假設已經是 embed 網址，或其他可以直接嵌入的網址
+}
 
 window.currentClozeAnswers = [];
 // 🌐 語言中繼資料：預設 7 種語言 + 使用者自訂新增的語言
@@ -239,7 +267,20 @@ function saveCategoriesToStorage() {
 // ==========================================
 // 3. 核心功能與發音引擎
 // ==========================================
-function speak(text, lang) {
+function speak(text, lang, audioUrl) {
+    // 🎙️ 如果這個字句有自己錄的發音檔（例如台語沒有系統語音時），優先播放這個
+    if (audioUrl && String(audioUrl).trim()) {
+        const audio = new Audio(String(audioUrl).trim());
+        audio.play().catch((err) => {
+            console.error("自錄發音檔播放失敗，改用系統發音：", err);
+            speakWithTTS(text, lang);
+        });
+        return;
+    }
+    speakWithTTS(text, lang);
+}
+
+function speakWithTTS(text, lang) {
     if ('speechSynthesis' in window) {
         const meta = getLangMeta(lang);
         if (!meta.speechLang) return; // 沒有設定語音代碼的語言（例如台語、或未填寫的自訂語言）就不發聲
@@ -444,63 +485,6 @@ function updateUI() {
     else if (currentMode === "kana") renderKanaMode();
     else if (currentMode === "writing") renderWritingMode();
     else if (currentMode === "speaking") renderSpeakingMode();
-    else if (currentMode === 'video_writing') {
-        // 取得目前情境的題目陣列（這裡假設你原本的題目選取邏輯不變）
-        const currentItems = userDatabase[currentLang]?.filter(item => item.category === currentCat) || [];
-
-        if (currentItems.length === 0) {
-            mainContent.innerHTML = "<p>此情境暫無影音寫作題目。</p>";
-            return;
-        }
-
-        // 隨機或依序取得一題
-        const quiz = currentItems[0]; // 先以第一題為例
-
-        let mediaHTML = "";
-        // 如果有影片，就嵌入 YouTube 撥放器
-        if (quiz.videoUrl) {
-            mediaHTML = `
-            <div class="video-container" style="margin-bottom: 15px;">
-                <iframe width="100%" height="250" src="${quiz.videoUrl}" frameborder="0" allowfullscreen></iframe>
-            </div>
-        `;
-        } else if (quiz.audioSrc) {
-            // 如果只有音檔，顯示播放按鈕
-            mediaHTML = `
-            <div class="audio-container" style="margin-bottom: 15px;">
-                <button onclick="new Audio('${quiz.audioSrc}').play()" class="btn">🎵 播放引導音訊</button>
-            </div>
-        `;
-        }
-
-        mainContent.innerHTML = `
-        <div class="practice-zone">
-            <h3>🎬 影音看圖/聽力寫作特訓</h3>
-            ${mediaHTML}
-            
-            <div class="quiz-prompt" style="background: #f4f4f4; padding: 10px; border-left: 4px solid #007bff; margin-bottom: 15px;">
-                <strong>💡 寫作題目提示：</strong>
-                <p>${quiz.prompt}</p>
-            </div>
-
-            <textarea id="userEssay" rows="6" placeholder="請在此輸入你的小文章..." style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px;"></textarea>
-            
-            <button id="submitToAI" class="btn" style="margin-top: 10px; width: 100%; background: #28a745; color: white;">🚀 送出給 AI 批改</button>
-            
-            <div id="aiFeedback" class="ai-feedback-box" style="margin-top: 20px; display: none;"></div>
-        </div>
-    `;
-
-        // 綁定送出按鈕的事件
-        document.getElementById("submitToAI").addEventListener("click", () => {
-            const essay = document.getElementById("userEssay").value;
-            if (!essay.trim()) {
-                alert("請先寫點東西再送出喔！");
-                return;
-            }
-            sendToAIForCorrection(essay, quiz);
-        });
-    }
     // 同步重新整理第四頁看板（如果存在的話）
     renderNewsLinks();
     renderMyLinks();
@@ -562,7 +546,7 @@ function renderClozeMode() {
     function checkAns() {
         if (inputField.value.trim().toLowerCase() === answerSegment.trim().toLowerCase()) {
             feedback.innerHTML = `<span style='color:green'>⭕ 完美答對！ 正確答案：${fullText}</span>`;
-            speak(fullText, currentLang);
+            speak(fullText, currentLang, currentItem.audioUrl);
             setTimeout(() => { currentClozeIndex++; updateUI(); }, 2000);
         } else {
             feedback.innerHTML = `<span style='color:red'>❌ 拼寫不對喔，再試一次！</span>`;
@@ -624,7 +608,7 @@ function renderDialogueMode() {
         const btn = document.createElement("button");
         btn.className = "audio-btn";
         btn.innerHTML = "🔊";
-        btn.addEventListener("click", (e) => { e.stopPropagation(); speak(item.text, currentLang); });
+        btn.addEventListener("click", (e) => { e.stopPropagation(); speak(item.text, currentLang, item.audioUrl); });
 
         const editBtn = document.createElement("button");
         editBtn.className = "audio-btn";
@@ -716,7 +700,7 @@ function renderListeningMode() {
             </div>
         </div>`;
 
-    document.getElementById("quizAudioBtn").addEventListener("click", () => speak(quizData.audioText, currentLang));
+    document.getElementById("quizAudioBtn").addEventListener("click", () => speak(quizData.audioText, currentLang, quizData.item.audioUrl));
     document.getElementById("quizEditBtn").addEventListener("click", () => editWordItem(quizData.item));
     document.getElementById("quizDeleteBtn").addEventListener("click", () => deleteWordItem(quizData.item));
 
@@ -848,12 +832,29 @@ function countWrittenParagraphs() {
 }
 
 function renderWritingMode() {
-    // ✍️ 動態寫作特訓現在適用所有語言：依照目前選擇的語言 + 情境，從使用者自己新增的單字/句子出題
+    // ✍️ 寫作特訓現在分兩種子模式：依單字出題（既有功能）、依影音出題（新功能，含 AI 批改）
+    mainContent.innerHTML = `
+        <div style="display:flex; gap:8px; margin-bottom:15px;">
+            <button id="writingModeWordBtn" style="flex:1; padding:9px; border-radius:20px; border:1px solid #cbd5e0; cursor:pointer; font-weight:bold; font-size:13px; background:${writingSubMode === 'word' ? '#2b6cb0' : '#fff'}; color:${writingSubMode === 'word' ? '#fff' : '#4a5568'};">📝 單字寫作</button>
+            <button id="writingModeVideoBtn" style="flex:1; padding:9px; border-radius:20px; border:1px solid #cbd5e0; cursor:pointer; font-weight:bold; font-size:13px; background:${writingSubMode === 'video' ? '#2b6cb0' : '#fff'}; color:${writingSubMode === 'video' ? '#fff' : '#4a5568'};">🎬 影音寫作</button>
+        </div>
+        <div id="writingSubModeContainer"></div>
+    `;
 
+    document.getElementById("writingModeWordBtn").addEventListener("click", () => { writingSubMode = "word"; updateUI(); });
+    document.getElementById("writingModeVideoBtn").addEventListener("click", () => { writingSubMode = "video"; updateUI(); });
+
+    const container = document.getElementById("writingSubModeContainer");
+    if (writingSubMode === "video") renderVideoWritingPractice(container);
+    else renderWordWritingPractice(container);
+}
+
+// 📝 子模式一：依照使用者自己新增的單字/句子動態出題（原本的寫作特訓功能）
+function renderWordWritingPractice(container) {
     // 📚 回顧模式：顯示所有已完成的段落
     if (writingReviewOpen) {
         const entries = Object.entries(writingParagraphs[currentLang] || {});
-        mainContent.innerHTML = `
+        container.innerHTML = `
             <div style="padding: 5px;">
                 <div style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap;">
                     <button id="writingBackBtn" style="background:#718096; color:#fff; border:none; padding:8px 16px; border-radius:20px; cursor:pointer; font-size:13px;">⬅️ 返回練習</button>
@@ -882,7 +883,7 @@ function renderWritingMode() {
     // ✍️ 練習模式：依情境過濾出來的單字/句子清單，逐一出題
     const data = getFilteredList();
     if (data.length === 0) {
-        mainContent.innerHTML = `<div style='text-align:center;color:#999;padding:40px;'>此情境目前沒有任何單字/句子，快去引進庫新增幾個，才能開始寫作特訓唷！<br><br><button onclick="navigateToPage(5)" style="padding:8px 16px; background:#2b6cb0; color:#fff; border:none; border-radius:6px; cursor:pointer;">前往引進庫</button></div>`;
+        container.innerHTML = `<div style='text-align:center;color:#999;padding:40px;'>此情境目前沒有任何單字/句子，快去引進庫新增幾個，才能開始寫作特訓唷！<br><br><button onclick="navigateToPage(5)" style="padding:8px 16px; background:#2b6cb0; color:#fff; border:none; border-radius:6px; cursor:pointer;">前往引進庫</button></div>`;
         return;
     }
 
@@ -890,7 +891,7 @@ function renderWritingMode() {
     const saved = getWritingParagraph(item.text);
     const reviewCount = countWrittenParagraphs();
 
-    mainContent.innerHTML = `
+    container.innerHTML = `
         <div class="quiz-box" style="text-align:left; padding: 15px;">
             <h3 style="text-align:center; margin-top:0;">${getLangMeta(currentLang).icon} ${getLangMeta(currentLang).name}寫作特訓</h3>
 
@@ -911,6 +912,11 @@ function renderWritingMode() {
                 <button id="writingSaveBtn" class="btn-primary" style="flex:1; padding:10px;">💾 儲存這段</button>
                 <button id="writingNextBtn" style="flex:1; padding:10px; background:#718096; color:#fff; border:none; border-radius:25px; font-weight:bold; cursor:pointer;">下一個單字 ➡️</button>
             </div>
+
+            <div style="margin-top:10px;">
+                <button id="writingAIBtn" style="width:100%; padding:10px; background:#28a745; color:#fff; border:none; border-radius:25px; font-weight:bold; cursor:pointer;">🤖 AI 修改建議</button>
+            </div>
+            <div id="writingAiFeedback" style="margin-top:12px; display:none;"></div>
 
             ${reviewCount > 0 ? `
             <div style="margin-top:15px; display:flex; gap:16px; justify-content:center; align-items:center;">
@@ -950,6 +956,12 @@ function renderWritingMode() {
         updateUI();
     });
 
+    document.getElementById("writingAIBtn").addEventListener("click", () => {
+        const text = textarea.value.trim();
+        if (!text) { alert("請先寫一點內容再送出唷！"); return; }
+        sendToAIForCorrection("writingAiFeedback", text, { prompt: "", text: item.text, trans: item.trans });
+    });
+
     const reviewBtn = document.getElementById("writingReviewBtn");
     if (reviewBtn) {
         reviewBtn.addEventListener("click", () => {
@@ -960,6 +972,58 @@ function renderWritingMode() {
 
     const exportBtnInline = document.getElementById("writingExportBtnInline");
     if (exportBtnInline) exportBtnInline.addEventListener("click", exportWritingToDocx);
+}
+
+// 🎬 子模式二：依照使用者引進的影片/音檔出寫作題目，並可送給 AI 批改文法
+function renderVideoWritingPractice(container) {
+    const list = (videoWritingItems && videoWritingItems[currentLang]) || [];
+
+    if (list.length === 0) {
+        container.innerHTML = `<div style='text-align:center;color:#999;padding:40px;'>目前${getLangMeta(currentLang).name}還沒有任何影音寫作題目，快去引進庫新增一個吧！<br><br><button onclick="navigateToPage(5)" style="padding:8px 16px; background:#2b6cb0; color:#fff; border:none; border-radius:6px; cursor:pointer;">前往引進庫</button></div>`;
+        return;
+    }
+
+    const item = list[videoWritingIndex % list.length];
+
+    let mediaHtml = "";
+    if (item.videoUrl) {
+        mediaHtml = `
+            <div style="position:relative; width:100%; padding-bottom:56.25%; border-radius:10px; overflow:hidden; margin-bottom:15px; background:#000;">
+                <iframe src="${toEmbedUrl(item.videoUrl)}" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>`;
+    } else if (item.audioSrc) {
+        mediaHtml = `
+            <div style="margin-bottom:15px;">
+                <audio controls src="${item.audioSrc}" style="width:100%;"></audio>
+            </div>`;
+    }
+
+    container.innerHTML = `
+        <div class="quiz-box" style="text-align:left; padding:15px;">
+            ${mediaHtml}
+            <div style="background:#ebf8ff; border-left:4px solid #2b6cb0; padding:12px 14px; border-radius:8px; margin-bottom:15px;">
+                <div style="font-weight:bold; color:#2b6cb0; margin-bottom:6px;">💡 寫作題目</div>
+                <div style="font-size:15px; color:#2d3748;">${item.prompt || "請根據上方影音內容，寫一小段短文。"}</div>
+                ${item.text ? `<div style="font-size:13px; color:#718096; margin-top:8px;">參考句：${item.text}${item.trans ? `（${item.trans}）` : ''}</div>` : ''}
+            </div>
+
+            <textarea id="videoEssayArea" rows="6" placeholder="請在這裡寫下你的文章..." style="width:100%; padding:12px; border-radius:8px; border:1px solid #cbd5e0; font-size:15px; box-sizing:border-box; resize:vertical;"></textarea>
+
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button id="videoSubmitAIBtn" style="flex:1; padding:10px; background:#28a745; color:#fff; border:none; border-radius:25px; font-weight:bold; cursor:pointer;">🤖 送出給 AI 批改</button>
+                <button id="videoNextBtn" style="flex:1; padding:10px; background:#718096; color:#fff; border:none; border-radius:25px; font-weight:bold; cursor:pointer;">下一題 ➡️（共 ${list.length} 題）</button>
+            </div>
+
+            <div id="videoAiFeedback" style="margin-top:15px; display:none;"></div>
+        </div>
+    `;
+
+    document.getElementById("videoNextBtn").addEventListener("click", () => { videoWritingIndex++; updateUI(); });
+    document.getElementById("videoSubmitAIBtn").addEventListener("click", () => {
+        const essay = document.getElementById("videoEssayArea").value;
+        if (!essay.trim()) { alert("請先寫點東西再送出唷！"); return; }
+        sendToAIForCorrection("videoAiFeedback", essay, item);
+    });
 }
 
 // 📥 把目前語言所有已儲存的寫作段落匯出成一份 Word 檔（每次都是重新產生完整檔案，不是在雲端偷偷改同一份檔案）
@@ -1097,7 +1161,7 @@ function renderSpeakingMode() {
         </div>
     `;
 
-    document.getElementById("speakSampleBtn").addEventListener("click", () => speak(article.text, currentLang));
+    document.getElementById("speakSampleBtn").addEventListener("click", () => speak(article.text, currentLang, article.audioUrl));
     document.getElementById("speakNextBtn").addEventListener("click", () => { speakingIndex++; updateUI(); });
     document.getElementById("speakStartBtn").addEventListener("click", () => startSpeakingRecognition(article.text));
 }
@@ -1323,6 +1387,7 @@ function renderPage5ImportCenter() {
                 <input type="text" id="p5WordInput" placeholder="外文內容 (必填)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
                 <input type="text" id="p5TransInput" placeholder="中文翻譯 (必填)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
                 <input type="text" id="p5ExInput" placeholder="延伸句子/讀音提示 (選填)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+                <input type="text" id="p5AudioUrlInput" placeholder="自錄發音檔網址 (選填，台語等沒有語音朗讀的語言建議填寫，例如 audio/xxx.mp3)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
                 <select id="p5CatInput" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
                     ${categories.map(cat => `<option value="${cat.id}">${cat.icon} ${cat.name} (${cat.id})</option>`).join('')}
                 </select>
@@ -1337,7 +1402,7 @@ function renderPage5ImportCenter() {
         return `
                     <div style="background:#fff; border:1px solid #edf2f7; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.01);">
                         <div style="flex:1; margin-right:10px; min-width:0;">
-                            <div style="font-size:14px; font-weight:bold; color:#2d3748; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.text}</div>
+                            <div style="font-size:14px; font-weight:bold; color:#2d3748; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.text} ${item.audioUrl ? '🎙️' : ''}</div>
                             <div style="font-size:12px; color:#718096; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">意：${item.trans} | 類：${catDisplayName}</div>
                         </div>
                         <div style="display:flex; gap:6px; flex-shrink:0;">
@@ -1388,6 +1453,7 @@ function renderPage5ImportCenter() {
                 <h4 style="margin:0; color:#4a5568; font-size:13px;">➕ 新增一篇短文或對話（可以自己寫，也可以貼上從別的地方找到的文章）：</h4>
                 <input type="text" id="p5SpeakTitle" placeholder="標題（例如：在餐廳點餐對話）" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
                 <textarea id="p5SpeakText" placeholder="貼上或輸入短文/對話全文..." style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px; min-height:90px; resize:vertical; font-family:inherit;"></textarea>
+                <input type="text" id="p5SpeakAudioUrl" placeholder="自錄範例發音檔網址（選填，台語建議填寫，例如 audio/xxx.mp3）" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
                 <button id="p5AddSpeakBtn" style="background:#2f855a; color:#fff; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px; margin-top:4px;">確認新增</button>
             </div>
 
@@ -1405,6 +1471,37 @@ function renderPage5ImportCenter() {
                         </div>
                     </div>`).join('')}
                 ${(speakingArticles[currentLang] || []).length === 0 ? '<p style="text-align:center; color:#a0aec0; padding:15px; font-size:13px; margin:0;">目前這個語言還沒有任何短文/對話唷！</p>' : ''}
+            </div>
+        </div>
+
+        <div class="import-card" style="background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05); margin-bottom:25px; border: 1px solid #e2e8f0;">
+            <h3 style="margin:0 0 15px 0; color:#1a73e8; font-size:18px;">🎬 影音寫作題目管理（${getLangMeta(currentLang).name}）</h3>
+            <p style="font-size:13px; color:#718096; margin:0 0 12px 0; line-height:1.6;">引進一部 YouTube 影片或一段音檔，搭配寫作題目，就能在「寫作特訓 → 🎬 影音寫作」裡練習，並送給 AI 批改文法。</p>
+
+            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px; background:#f7fafc; padding:15px; border-radius:8px; border:1px dashed #cbd5e0;">
+                <h4 style="margin:0; color:#4a5568; font-size:13px;">➕ 新增一個影音寫作題目：</h4>
+                <input type="text" id="p5VideoPrompt" placeholder="寫作題目提示（例如：請描述影片中主角在做什麼）" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+                <input type="text" id="p5VideoUrl" placeholder="YouTube 影片網址（跟音檔擇一填寫即可）" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+                <input type="text" id="p5VideoAudioUrl" placeholder="音檔網址（跟影片擇一填寫即可，例如 audio/xxx.mp3）" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+                <input type="text" id="p5VideoRefText" placeholder="參考句（選填）" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+                <input type="text" id="p5VideoRefTrans" placeholder="參考句中文翻譯（選填）" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+                <button id="p5AddVideoWritingBtn" style="background:#1a73e8; color:#fff; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px; margin-top:4px;">確認新增</button>
+            </div>
+
+            <h4 style="margin:0 0 10px 0; color:#4a5568; font-size:14px;">📋 已新增的影音寫作題目（${(videoWritingItems[currentLang] || []).length}）</h4>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                ${(videoWritingItems[currentLang] || []).map((item, index) => `
+                    <div style="background:#fff; border:1px solid #edf2f7; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.01);">
+                        <div style="flex:1; margin-right:10px; min-width:0;">
+                            <div style="font-size:14px; font-weight:bold; color:#2d3748; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.videoUrl ? '🎬' : '🎵'} ${item.prompt}</div>
+                            <div style="font-size:12px; color:#718096; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.videoUrl || item.audioSrc || ''}</div>
+                        </div>
+                        <div style="display:flex; gap:6px; flex-shrink:0;">
+                            <button onclick="editVideoWritingItemFromPage5(${index})" style="background:#ecc94b; color:#744210; border:none; padding:4px 8px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">修改</button>
+                            <button onclick="deleteVideoWritingItemFromPage5(${index})" style="background:#e53e3e; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">刪除</button>
+                        </div>
+                    </div>`).join('')}
+                ${(videoWritingItems[currentLang] || []).length === 0 ? '<p style="text-align:center; color:#a0aec0; padding:15px; font-size:13px; margin:0;">目前這個語言還沒有任何影音寫作題目唷！</p>' : ''}
             </div>
         </div>
 
@@ -1446,6 +1543,7 @@ function renderPage5ImportCenter() {
 
     document.getElementById("p5AddLinkBtn").addEventListener("click", addLinkFromPage5);
     document.getElementById("p5AddSpeakBtn").addEventListener("click", addSpeakingArticleFromPage5);
+    document.getElementById("p5AddVideoWritingBtn").addEventListener("click", addVideoWritingItemFromPage5);
 
     // ☁️ 同步按鈕事件綁定
     const syncCodeInputEl = document.getElementById("syncCodeInput");
@@ -1476,18 +1574,20 @@ function addWordFromPage5() {
     const textEl = document.getElementById("p5WordInput");
     const transEl = document.getElementById("p5TransInput");
     const exEl = document.getElementById("p5ExInput");
+    const audioEl = document.getElementById("p5AudioUrlInput");
     const catEl = document.getElementById("p5CatInput");
     if (!textEl || !transEl) return;
 
     const text = textEl.value.trim();
     const trans = transEl.value.trim();
     const example = exEl ? exEl.value.trim() : "";
+    const audioUrl = audioEl ? audioEl.value.trim() : "";
     const category = catEl ? catEl.value : "all";
 
     if (!text || !trans) { alert("核心內容與翻譯為必填欄位！"); return; }
     if (!userDatabase[currentLang]) userDatabase[currentLang] = [];
 
-    userDatabase[currentLang].push({ text, trans, example, exTrans: "自訂字句", category });
+    userDatabase[currentLang].push({ text, trans, example, exTrans: "自訂字句", category, audioUrl });
     saveToStorage();
     renderPage5ImportCenter();
 }
@@ -1497,18 +1597,21 @@ window.editWordFromPage5 = function (index) {
     if (!list[index]) return;
     const item = list[index];
 
-    const newText = prompt("1/3 修改外文內容：", item.text);
+    const newText = prompt("1/4 修改外文內容：", item.text);
     if (newText === null) return;
     if (!newText.trim()) { alert("核心內容不能為空！"); return; }
 
-    const newTrans = prompt("2/3 修改中文翻譯：", item.trans);
+    const newTrans = prompt("2/4 修改中文翻譯：", item.trans);
     if (newTrans === null) return;
     if (!newTrans.trim()) { alert("翻譯不能為空！"); return; }
 
-    const newEx = prompt("3/3 修改延伸句子/音標提示：", item.example || "");
+    const newEx = prompt("3/4 修改延伸句子/音標提示：", item.example || "");
     if (newEx === null) return;
 
-    list[index] = { ...item, text: newText.trim(), trans: newTrans.trim(), example: newEx.trim() };
+    const newAudioUrl = prompt("4/4 修改自錄發音檔網址（選填，沒有就留空）：", item.audioUrl || "");
+    if (newAudioUrl === null) return;
+
+    list[index] = { ...item, text: newText.trim(), trans: newTrans.trim(), example: newEx.trim(), audioUrl: newAudioUrl.trim() };
     saveToStorage();
     renderPage5ImportCenter();
 }
@@ -1577,14 +1680,16 @@ window.deleteLinkFromPage5 = function (index) {
 function addSpeakingArticleFromPage5() {
     const titleEl = document.getElementById("p5SpeakTitle");
     const textEl = document.getElementById("p5SpeakText");
+    const audioEl = document.getElementById("p5SpeakAudioUrl");
     if (!titleEl || !textEl) return;
 
     const title = titleEl.value.trim();
     const text = textEl.value.trim();
+    const audioUrl = audioEl ? audioEl.value.trim() : "";
     if (!title || !text) { alert("標題與內容都要填寫唷！"); return; }
 
     if (!speakingArticles[currentLang]) speakingArticles[currentLang] = [];
-    speakingArticles[currentLang].push({ id: "sp_" + Date.now(), title, text });
+    speakingArticles[currentLang].push({ id: "sp_" + Date.now(), title, text, audioUrl });
     saveSpeakingArticlesToStorage();
     renderPage5ImportCenter();
 }
@@ -1594,15 +1699,18 @@ window.editSpeakingArticleFromPage5 = function (index) {
     if (!list[index]) return;
     const item = list[index];
 
-    const newTitle = prompt("1/2 修改標題：", item.title);
+    const newTitle = prompt("1/3 修改標題：", item.title);
     if (newTitle === null) return;
     if (!newTitle.trim()) { alert("標題不能為空！"); return; }
 
-    const newText = prompt("2/2 修改短文/對話內容：", item.text);
+    const newText = prompt("2/3 修改短文/對話內容：", item.text);
     if (newText === null) return;
     if (!newText.trim()) { alert("內容不能為空！"); return; }
 
-    list[index] = { ...item, title: newTitle.trim(), text: newText.trim() };
+    const newAudioUrl = prompt("3/3 修改自錄範例發音檔網址（選填）：", item.audioUrl || "");
+    if (newAudioUrl === null) return;
+
+    list[index] = { ...item, title: newTitle.trim(), text: newText.trim(), audioUrl: newAudioUrl.trim() };
     saveSpeakingArticlesToStorage();
     renderPage5ImportCenter();
 }
@@ -1613,6 +1721,80 @@ window.deleteSpeakingArticleFromPage5 = function (index) {
     if (confirm(`確定要刪除「${list[index].title}」這篇短文/對話嗎？`)) {
         list.splice(index, 1);
         saveSpeakingArticlesToStorage();
+        renderPage5ImportCenter();
+    }
+}
+
+// 🎬 影音寫作題目管理（新增、編輯、刪除）
+function addVideoWritingItemFromPage5() {
+    const promptEl = document.getElementById("p5VideoPrompt");
+    const videoUrlEl = document.getElementById("p5VideoUrl");
+    const audioUrlEl = document.getElementById("p5VideoAudioUrl");
+    const refTextEl = document.getElementById("p5VideoRefText");
+    const refTransEl = document.getElementById("p5VideoRefTrans");
+    if (!promptEl) return;
+
+    const promptText = promptEl.value.trim();
+    const videoUrl = videoUrlEl ? videoUrlEl.value.trim() : "";
+    const audioUrl = audioUrlEl ? audioUrlEl.value.trim() : "";
+
+    if (!promptText) { alert("請至少填寫寫作題目提示！"); return; }
+    if (!videoUrl && !audioUrl) { alert("請至少提供影片網址或音檔網址其中一個！"); return; }
+
+    if (!videoWritingItems[currentLang]) videoWritingItems[currentLang] = [];
+    videoWritingItems[currentLang].push({
+        id: "vw_" + Date.now(),
+        prompt: promptText,
+        videoUrl: videoUrl,
+        audioSrc: audioUrl,
+        text: refTextEl ? refTextEl.value.trim() : "",
+        trans: refTransEl ? refTransEl.value.trim() : ""
+    });
+    saveVideoWritingItemsToStorage();
+    renderPage5ImportCenter();
+}
+
+window.editVideoWritingItemFromPage5 = function (index) {
+    const list = videoWritingItems[currentLang] || [];
+    if (!list[index]) return;
+    const item = list[index];
+
+    const newPrompt = prompt("1/5 修改寫作題目提示：", item.prompt || "");
+    if (newPrompt === null) return;
+    if (!newPrompt.trim()) { alert("寫作題目提示不能為空！"); return; }
+
+    const newVideoUrl = prompt("2/5 修改 YouTube 影片網址（沒有的話留空）：", item.videoUrl || "");
+    if (newVideoUrl === null) return;
+
+    const newAudioUrl = prompt("3/5 修改音檔網址（沒有的話留空）：", item.audioSrc || "");
+    if (newAudioUrl === null) return;
+
+    if (!newVideoUrl.trim() && !newAudioUrl.trim()) { alert("影片網址跟音檔網址至少要填一個！"); return; }
+
+    const newRefText = prompt("4/5 修改參考句（選填）：", item.text || "");
+    if (newRefText === null) return;
+
+    const newRefTrans = prompt("5/5 修改參考句翻譯（選填）：", item.trans || "");
+    if (newRefTrans === null) return;
+
+    list[index] = {
+        ...item,
+        prompt: newPrompt.trim(),
+        videoUrl: newVideoUrl.trim(),
+        audioSrc: newAudioUrl.trim(),
+        text: newRefText.trim(),
+        trans: newRefTrans.trim()
+    };
+    saveVideoWritingItemsToStorage();
+    renderPage5ImportCenter();
+}
+
+window.deleteVideoWritingItemFromPage5 = function (index) {
+    const list = videoWritingItems[currentLang] || [];
+    if (!list[index]) return;
+    if (confirm("確定要刪除這個影音寫作題目嗎？")) {
+        list.splice(index, 1);
+        saveVideoWritingItemsToStorage();
         renderPage5ImportCenter();
     }
 }
@@ -1632,7 +1814,8 @@ function getFullSyncPayload() {
         categories,
         customLanguages,
         speakingArticles,
-        writingParagraphs
+        writingParagraphs,
+        videoWritingItems
     };
 }
 
@@ -1643,12 +1826,14 @@ function applySyncPayload(payload) {
     if (payload.customLanguages) customLanguages = payload.customLanguages;
     if (payload.speakingArticles) speakingArticles = payload.speakingArticles;
     if (payload.writingParagraphs) writingParagraphs = payload.writingParagraphs;
+    if (payload.videoWritingItems) videoWritingItems = payload.videoWritingItems;
     saveToStorage();
     saveLinksToStorage();
     saveCategoriesToStorage();
     saveCustomLanguages();
     saveSpeakingArticlesToStorage();
     saveWritingParagraphsToStorage();
+    saveVideoWritingItemsToStorage();
     renderLangGrid();
 }
 
@@ -1708,12 +1893,13 @@ async function pullFromCloud() {
         alert("下載失敗，請檢查網路連線：" + err.message);
     }
 }
-async function sendToAIForCorrection(userEssay, quizItem) {
-    const feedbackZone = document.getElementById("aiFeedback");
+async function sendToAIForCorrection(feedbackElId, userEssay, quizItem) {
+    const feedbackZone = document.getElementById(feedbackElId);
+    if (!feedbackZone) return;
     feedbackZone.style.display = "block";
     feedbackZone.innerHTML = "<p>⏳ AI 正在仔細閱讀並批改你的文章，請稍候...</p>";
 
-    // 🛠️ 修正：API Key 不再放在前端程式碼裡（會被任何人打開瀏覽器原始碼看光光）。
+    // 🛠️ API Key 不放在前端程式碼裡（會被任何人打開瀏覽器原始碼看光光）。
     // 改成呼叫我們自己的後端 /api/correct，Key 存在 Vercel 環境變數裡，只有伺服器看得到。
     try {
         const response = await fetch("/api/correct", {
@@ -1721,9 +1907,9 @@ async function sendToAIForCorrection(userEssay, quizItem) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 lang: currentLang,
-                prompt: quizItem.prompt,
-                referenceText: quizItem.text,
-                referenceTrans: quizItem.trans,
+                prompt: quizItem.prompt || "",
+                referenceText: quizItem.text || "",
+                referenceTrans: quizItem.trans || "",
                 essay: userEssay
             })
         });
@@ -1736,13 +1922,13 @@ async function sendToAIForCorrection(userEssay, quizItem) {
         // 將換行符號轉為網頁換行，並渲染到畫面上
         feedbackZone.innerHTML = `
             <div style="background: #e9ecef; padding: 15px; border-radius: 8px; border-left: 5px solid #28a745;">
-                <h4>🤖 AI 老師的批改報告：</h4>
-                <p style="white-space: pre-wrap;">${data.feedback}</p>
+                <h4 style="margin-top:0;">🤖 AI 老師的批改報告：</h4>
+                <p style="white-space: pre-wrap; margin-bottom:0;">${data.feedback}</p>
             </div>
         `;
     } catch (error) {
         console.error(error);
-        feedbackZone.innerHTML = `<p>❌ 批改失敗，請檢查網路連線：${error.message}</p>`;
+        feedbackZone.innerHTML = `<p style="color:#e53e3e;">❌ 批改失敗，請檢查網路連線：${error.message}</p>`;
     }
 }
 // ==========================================

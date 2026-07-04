@@ -1,12 +1,104 @@
 {
+    "ja": [
+        {
+            "id": "ja_001",
+            "category": "hotel",
+            "text": "チェックインをお願いします。",
+            "trans": "麻煩請幫我辦理入住。",
+            "example": "ちぇっくいんを おねがいします",
+            "exTrans": "（讀音提示）",
+            "videoUrl": "",
+            "prompt": "請試著模擬在飯店櫃檯，用日文寫出兩句你想詢問櫃檯人員的話。"
+        },
+        {
+            "id": "ja_002",
+            "category": "hotel",
+            "text": "予約の名前は王です。",
+            "trans": "預約的名字是姓王。",
+            "example": "よやくの なまえは おうです",
+            "exTrans": "（讀音提示）",
+            "videoUrl": "",
+            "prompt": ""
+        },
+        {
+            "id": "ja_003",
+            "category": "restaurant",
+            "text": "お会計をお願いします。",
+            "trans": "麻煩請幫我結帳。",
+            "example": "おかいけいを おねがいします",
+            "exTrans": "（讀音提示）",
+            "videoUrl": "",
+            "prompt": ""
+        }
+    ],
+    "ko": [
+        {
+            "id": "ko_001",
+            "category": "hotel",
+            "text": "체크인하고 싶어요.",
+            "trans": "我想辦理入住手續。",
+            "example": "왕 씨 이름으로 예약했어요。",
+            "exTrans": "用王先生的名字預約的。",
+            "videoUrl": "",
+            "prompt": ""
+        }
+    ],
     "en": [
         {
             "id": "en_001",
             "category": "日常會話",
             "text": "What are you doing today?",
             "trans": "你今天打算做什麼？",
+            "example": "I'm planning to go shopping.",
+            "exTrans": "我打算去購物。",
             "videoUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
             "prompt": "請觀看上方影片，並用英文寫一段 30-50 字的小短文，描述你今天的行程規劃。"
+        },
+        {
+            "id": "en_002",
+            "category": "hotel",
+            "text": "I would like to check in, please.",
+            "trans": "我想辦理入住手續。",
+            "example": "Under the name of Wang.",
+            "exTrans": "預約名字是王。",
+            "videoUrl": "",
+            "prompt": ""
+        }
+    ],
+    "de": [
+        {
+            "id": "de_001",
+            "category": "hotel",
+            "text": "Guten Tag, Einchecken bitte.",
+            "trans": "你好，我想辦理入住。",
+            "example": "Ich habe ein Zimmer reserviert.",
+            "exTrans": "我有預訂一間房間。",
+            "videoUrl": "",
+            "prompt": ""
+        }
+    ],
+    "fr": [
+        {
+            "id": "fr_001",
+            "category": "hotel",
+            "text": "Bonjour, je voudrais enregistrer.",
+            "trans": "你好，我想辦理入住手續。",
+            "example": "Mon nom est Wang.",
+            "exTrans": "我的名字是王。",
+            "videoUrl": "",
+            "prompt": ""
+        }
+    ],
+    "es": [
+        {
+            "id": "es_001",
+            "category": "hotel",
+            "text": "Hola, me gustaría hacer el registro, por favor.",
+            "trans": "你好，我想辦理入住手續。",
+            "example": "A nombre de Wang.",
+            "exTrans": "預約名字是王。",
+            "videoUrl": "",
+            "prompt": ""
         }
     ],
     "nan": [
@@ -15,6 +107,8 @@
             "category": "情境台語",
             "text": "食飽未？隨便坐！",
             "trans": "吃飽沒？請隨便坐！",
+            "example": "Tshia̍h-pá--bē? Sûi-piān tsē!",
+            "exTrans": "（羅馬拼音提示）",
             "audioSrc": "audio/tsiah-pa-be.mp3",
             "videoUrl": "",
             "prompt": "聽完台語音檔或觀看影片後，請試著用漢字或羅馬拼音寫一段關於台灣人熱情打招呼的短文（可混用中文）。"

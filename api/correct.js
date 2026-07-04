@@ -6,7 +6,7 @@
 // ==========================================
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = "gemini-2.0-flash"; // ⚠️ 原本的 gemini-pro 已停用，改用目前可用的模型
+const GEMINI_MODEL = "gemini-flash-latest"; // ⚠️ gemini-2.0-flash 已於 2026/6/1 停用；改用官方會自動指向目前最新 Flash 模型的別名，避免以後又要手動更新
 
 module.exports = async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
