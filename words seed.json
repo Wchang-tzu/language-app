@@ -1,0 +1,79 @@
+{
+    "ja": [
+        {
+            "text": "チェックインをお願いします。",
+            "trans": "麻煩請幫我辦理入住。",
+            "example": "ちぇっくいんを おねがいします",
+            "exTrans": "（讀音提示）",
+            "category": "hotel"
+        },
+        {
+            "text": "予約の名前は王です。",
+            "trans": "預約的名字是姓王。",
+            "example": "よやくの なまえは おうです",
+            "exTrans": "（讀音提示）",
+            "category": "hotel"
+        },
+        {
+            "text": "お会計をお願いします。",
+            "trans": "麻煩請幫我結帳。",
+            "example": "おかいけいを おねがいします",
+            "exTrans": "（讀音提示）",
+            "category": "restaurant"
+        }
+    ],
+    "ko": [
+        {
+            "text": "체크인하고 싶어요.",
+            "trans": "我想辦理入住手續。",
+            "example": "왕 씨 이름으로 예약했어요.",
+            "exTrans": "用王先生的名字預約的。",
+            "category": "hotel"
+        }
+    ],
+    "en": [
+        {
+            "text": "I would like to check in, please.",
+            "trans": "我想辦理入住手續。",
+            "example": "Under the name of Wang.",
+            "exTrans": "預約名字是王。",
+            "category": "hotel"
+        }
+    ],
+    "de": [
+        {
+            "text": "Guten Tag, Einchecken bitte.",
+            "trans": "你好，我想辦理入住。",
+            "example": "Ich habe ein Zimmer reserviert.",
+            "exTrans": "我有預訂一間房間。",
+            "category": "hotel"
+        }
+    ],
+    "fr": [
+        {
+            "text": "Bonjour, je voudrais enregistrer.",
+            "trans": "你好，我想辦理入住手續。",
+            "example": "Mon nom est Wang.",
+            "exTrans": "我的名字是王。",
+            "category": "hotel"
+        }
+    ],
+    "es": [
+        {
+            "text": "Hola, me gustaría hacer el registro, por favor.",
+            "trans": "你好，我想辦理入住手續。",
+            "example": "A nombre de Wang.",
+            "exTrans": "預約名字是王。",
+            "category": "hotel"
+        }
+    ],
+    "nan": [
+        {
+            "text": "食飽未？",
+            "trans": "吃飽了嗎？",
+            "example": "Tshia̍h-pá--bē?",
+            "exTrans": "（羅馬拼音提示）",
+            "category": "restaurant"
+        }
+    ]
+}

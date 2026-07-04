@@ -1,19 +1,8 @@
 // ==========================================
-// 1. 核心數據庫 (已防呆，請確保此處為唯一宣告)
+// 1. 核心數據庫
 // ==========================================
-const defaultDatabase = {
-    ja: [
-        { text: "チェックインをお願いします。", trans: "麻煩請幫我辦理入住。", example: "ちぇっくいんを おねがいします", exTrans: "（讀音提示）", category: "hotel" },
-        { text: "予約の名前は王です。", trans: "預約的名字是姓王。", example: "よやくの なまえは おうです", exTrans: "（讀音提示）", category: "hotel" },
-        { text: "お会計をお願いします。", trans: "麻煩請幫我結帳。", example: "おかいけいを おねがいします", exTrans: "（讀音提示）", category: "restaurant" }
-    ],
-    ko: [{ text: "체크인하고 싶어요.", trans: "我想辦理入住手續。", example: "왕 씨 이름으로 예약했어요.", exTrans: "用王先生的名字預約的。", category: "hotel" }],
-    en: [{ text: "I would like to check in, please.", trans: "我想辦理入住手續。", example: "Under the name of Wang.", exTrans: "預約名字是王。", category: "hotel" }],
-    de: [{ text: "Guten Tag, Einchecken bitte.", trans: "你好，我想辦理入住。", example: "Ich habe ein Zimmer reserviert.", exTrans: "我有預訂一間房間。", category: "hotel" }],
-    fr: [{ text: "Bonjour, je voudrais enregistrer.", trans: "你好，我想辦理入住手續。", example: "Mon nom est Wang.", exTrans: "我的名字是王。", category: "hotel" }],
-    es: [{ text: "Hola, me gustaría hacer el registro, por favor.", trans: "你好，我想辦理入住手續。", example: "A nombre de Wang.", exTrans: "預約名字是王。", category: "hotel" }],
-    nan: [{ text: "食飽未？", trans: "吃飽了嗎？", example: "Tshia̍h-pá--bē?", exTrans: "（羅馬拼音提示）", category: "restaurant" }]
-};
+// 💡 單字庫的初始範例資料已經抽到獨立的 words-seed.json 檔案，
+//    跟 database.json（影音寫作題目）用同一套「外部檔案 + fetch」的方式管理，維持一致風格。
 
 const frenchConjugations = [
     { verb: "être (是)", pronoun: "Je", answer: "suis", options: ["suis", "es", "est", "sommes"] },
@@ -97,14 +86,19 @@ let userDatabase = {}; // 一開始是空的，loadDatabase() 會同步補上，
 let videoWritingItems = {};
 
 // 網頁啟動時載入資料
-// 🛠️ 修正：
-// 1. 單字庫（userDatabase）優先讀 localStorage，沒有的話用 defaultDatabase 當初始範例（這一步完全同步，不會有非同步造成的畫面空白）
+// 1. 單字庫（userDatabase）優先讀 localStorage，沒有的話才去抓 words-seed.json 當初始範例
 // 2. 影音寫作題目（videoWritingItems）是完全獨立的另一份資料，優先讀 localStorage，沒有的話才去抓 database.json 當初始範例
-//    （之前的版本誤把 database.json 拿來填 userDatabase，但兩者欄位形狀完全不同，會讓字卡/聽力/拼寫模式收到缺欄位的資料）
+//    （兩者欄位形狀完全不同，不能共用同一份種子資料，否則字卡/聽力/拼寫模式會收到缺欄位的資料）
 async function loadDatabase() {
     try {
         const savedDB = localStorage.getItem("multiLangDynamicDB_v8");
-        userDatabase = savedDB ? JSON.parse(savedDB) : JSON.parse(JSON.stringify(defaultDatabase));
+        if (savedDB) {
+            userDatabase = JSON.parse(savedDB);
+        } else {
+            const seedResponse = await fetch('words-seed.json');
+            userDatabase = await seedResponse.json();
+            console.log("已載入 words-seed.json 作為單字庫的初始範例！");
+        }
 
         const savedVideoItems = localStorage.getItem("multiLangVideoWritingItems_v1");
         if (savedVideoItems) {
@@ -117,7 +111,7 @@ async function loadDatabase() {
         }
     } catch (error) {
         console.error("初始化資料庫時發生錯誤：", error);
-        if (!userDatabase || Object.keys(userDatabase).length === 0) userDatabase = JSON.parse(JSON.stringify(defaultDatabase));
+        if (!userDatabase || Object.keys(userDatabase).length === 0) userDatabase = {};
         if (!videoWritingItems) videoWritingItems = {};
     } finally {
         // 載入完成後（不論成功與否）重新渲染目前畫面，
@@ -218,7 +212,6 @@ if (!categories.some(c => c.id === "rare")) {
     categories.push({ id: "rare", name: "生僻字", icon: "🧠" });
     localStorage.setItem("multiLangCategories_v8", JSON.stringify(categories));
 }
-// 可以在 defaultDatabase 結尾或合適處加上情境長文章擴充（此處以測試為目的）
 const contextLongTexts = {
     en: {
         restaurant: [
