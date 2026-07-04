@@ -1276,12 +1276,6 @@ function renderNewsLinks() {
     }
 }
 
-// 關閉新聞模態視窗（原本 index.html 有呼叫但 JS 從未定義，會導致點擊時噴錯）
-window.closeNewsModal = function () {
-    const modal = document.getElementById("newsModal");
-    if (modal) modal.style.display = "none";
-};
-
 function displayLinks(linksArray) {
     const linkListContainer = document.getElementById("newsLinkList");
     if (!linkListContainer) return;
