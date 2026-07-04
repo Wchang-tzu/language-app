@@ -511,3 +511,91 @@ body {
 .add-to-pack-btn:hover {
     background: #2b6cb0;
 }
+
+/* 寫作特訓整體外殼 */
+.writing-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 15px;
+    background: #fdfdfd;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* RWD 響應式影片外殼 (保持 16:9) */
+.quiz-video-container {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%;
+    /* 16:9 比例 */
+    height: 0;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #000;
+}
+
+.quiz-video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.no-video-placeholder {
+    padding: 30px;
+    background: #f0f0f0;
+    text-align: center;
+    color: #888;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+/* 寫作輸入框 */
+.writing-input-box label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #444;
+}
+
+.writing-input-box textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    resize: vertical;
+    box-sizing: border-box;
+    margin-bottom: 12px;
+}
+
+.writing-input-box textarea:focus {
+    border-color: #4a90e2;
+    outline: none;
+}
+
+/* 結果呈現 */
+.result-success {
+    padding: 12px;
+    background-color: #e6f4ea;
+    color: #137333;
+    border-radius: 8px;
+    margin-top: 15px;
+    border-left: 5px solid #137333;
+}
+
+.result-fail {
+    padding: 12px;
+    background-color: #fce8e6;
+    color: #c5221f;
+    border-radius: 8px;
+    margin-top: 15px;
+    border-left: 5px solid #c5221f;
+}
+
+.next-btn {
+    margin-top: 10px;
+    background-color: #4a90e2;
+}

@@ -1,0 +1,23 @@
+{
+    "en": [
+        {
+            "id": "en_001",
+            "category": "日常會話",
+            "text": "What are you doing today?",
+            "trans": "你今天打算做什麼？",
+            "videoUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            "prompt": "請觀看上方影片，並用英文寫一段 30-50 字的小短文，描述你今天的行程規劃。"
+        }
+    ],
+    "nan": [
+        {
+            "id": "nan_001",
+            "category": "情境台語",
+            "text": "食飽未？隨便坐！",
+            "trans": "吃飽沒？請隨便坐！",
+            "audioSrc": "audio/tsiah-pa-be.mp3",
+            "videoUrl": "",
+            "prompt": "聽完台語音檔或觀看影片後，請試著用漢字或羅馬拼音寫一段關於台灣人熱情打招呼的短文（可混用中文）。"
+        }
+    ]
+}

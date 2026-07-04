@@ -91,7 +91,39 @@ let currentKanaQuiz = null;
 // ==========================================
 // 2. 全域變數與快取
 // ==========================================
-let userDatabase = JSON.parse(localStorage.getItem("multiLangDynamicDB_v8")) || defaultDatabase;
+let userDatabase = {}; // 一開始是空的
+
+// 網頁啟動時載入資料
+// 🛠️ 修正：優先讀取使用者存在 localStorage 的資料（新增/編輯過的內容），
+// 只有在使用者從來沒有存過任何資料時，才去抓 database.json 當作初始範例資料。
+// 這樣使用者新增的字句才不會在重新整理頁面後被 database.json 蓋掉、憑空消失。
+async function loadDatabase() {
+    try {
+        const saved = localStorage.getItem("multiLangDynamicDB_v8");
+        if (saved) {
+            userDatabase = JSON.parse(saved);
+            console.log("已從本機（localStorage）讀取你之前儲存的資料！");
+        } else {
+            const response = await fetch('database.json');
+            userDatabase = await response.json();
+            console.log("本機尚無資料，已載入預設範例資料庫！");
+        }
+    } catch (error) {
+        console.error("無法載入資料庫，請檢查格式：", error);
+        userDatabase = userDatabase || {};
+    } finally {
+        // 載入完成後（不論成功與否）重新渲染目前畫面，
+        // 避免資料還沒讀完就先顯示「沒有資料」的空畫面。
+        renderLangGrid();
+        const activePage = document.querySelector('.app-page.active');
+        if (activePage && activePage.id === "page5") renderPage5ImportCenter();
+        else if (activePage && activePage.id === "page2") renderCategoryPage();
+        else updateUI();
+    }
+}
+
+// 確保網頁一打開就去讀取 JSON
+document.addEventListener("DOMContentLoaded", loadDatabase);
 
 // ==========================================
 // 🗣️ 口語發音特訓：使用者自己新增的短文/對話庫
@@ -412,6 +444,63 @@ function updateUI() {
     else if (currentMode === "kana") renderKanaMode();
     else if (currentMode === "writing") renderWritingMode();
     else if (currentMode === "speaking") renderSpeakingMode();
+    else if (currentMode === 'video_writing') {
+        // 取得目前情境的題目陣列（這裡假設你原本的題目選取邏輯不變）
+        const currentItems = userDatabase[currentLang]?.filter(item => item.category === currentCat) || [];
+
+        if (currentItems.length === 0) {
+            mainContent.innerHTML = "<p>此情境暫無影音寫作題目。</p>";
+            return;
+        }
+
+        // 隨機或依序取得一題
+        const quiz = currentItems[0]; // 先以第一題為例
+
+        let mediaHTML = "";
+        // 如果有影片，就嵌入 YouTube 撥放器
+        if (quiz.videoUrl) {
+            mediaHTML = `
+            <div class="video-container" style="margin-bottom: 15px;">
+                <iframe width="100%" height="250" src="${quiz.videoUrl}" frameborder="0" allowfullscreen></iframe>
+            </div>
+        `;
+        } else if (quiz.audioSrc) {
+            // 如果只有音檔，顯示播放按鈕
+            mediaHTML = `
+            <div class="audio-container" style="margin-bottom: 15px;">
+                <button onclick="new Audio('${quiz.audioSrc}').play()" class="btn">🎵 播放引導音訊</button>
+            </div>
+        `;
+        }
+
+        mainContent.innerHTML = `
+        <div class="practice-zone">
+            <h3>🎬 影音看圖/聽力寫作特訓</h3>
+            ${mediaHTML}
+            
+            <div class="quiz-prompt" style="background: #f4f4f4; padding: 10px; border-left: 4px solid #007bff; margin-bottom: 15px;">
+                <strong>💡 寫作題目提示：</strong>
+                <p>${quiz.prompt}</p>
+            </div>
+
+            <textarea id="userEssay" rows="6" placeholder="請在此輸入你的小文章..." style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px;"></textarea>
+            
+            <button id="submitToAI" class="btn" style="margin-top: 10px; width: 100%; background: #28a745; color: white;">🚀 送出給 AI 批改</button>
+            
+            <div id="aiFeedback" class="ai-feedback-box" style="margin-top: 20px; display: none;"></div>
+        </div>
+    `;
+
+        // 綁定送出按鈕的事件
+        document.getElementById("submitToAI").addEventListener("click", () => {
+            const essay = document.getElementById("userEssay").value;
+            if (!essay.trim()) {
+                alert("請先寫點東西再送出喔！");
+                return;
+            }
+            sendToAIForCorrection(essay, quiz);
+        });
+    }
     // 同步重新整理第四頁看板（如果存在的話）
     renderNewsLinks();
     renderMyLinks();
@@ -1619,7 +1708,43 @@ async function pullFromCloud() {
         alert("下載失敗，請檢查網路連線：" + err.message);
     }
 }
+async function sendToAIForCorrection(userEssay, quizItem) {
+    const feedbackZone = document.getElementById("aiFeedback");
+    feedbackZone.style.display = "block";
+    feedbackZone.innerHTML = "<p>⏳ AI 正在仔細閱讀並批改你的文章，請稍候...</p>";
 
+    // 🛠️ 修正：API Key 不再放在前端程式碼裡（會被任何人打開瀏覽器原始碼看光光）。
+    // 改成呼叫我們自己的後端 /api/correct，Key 存在 Vercel 環境變數裡，只有伺服器看得到。
+    try {
+        const response = await fetch("/api/correct", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                lang: currentLang,
+                prompt: quizItem.prompt,
+                referenceText: quizItem.text,
+                referenceTrans: quizItem.trans,
+                essay: userEssay
+            })
+        });
+
+        const data = await response.json();
+        if (!response.ok || data.error) {
+            throw new Error(data.error || `伺服器錯誤 (status ${response.status})`);
+        }
+
+        // 將換行符號轉為網頁換行，並渲染到畫面上
+        feedbackZone.innerHTML = `
+            <div style="background: #e9ecef; padding: 15px; border-radius: 8px; border-left: 5px solid #28a745;">
+                <h4>🤖 AI 老師的批改報告：</h4>
+                <p style="white-space: pre-wrap;">${data.feedback}</p>
+            </div>
+        `;
+    } catch (error) {
+        console.error(error);
+        feedbackZone.innerHTML = `<p>❌ 批改失敗，請檢查網路連線：${error.message}</p>`;
+    }
+}
 // ==========================================
 // 8. 🔄 路由控制中心 (極致乾淨分離)
 // ==========================================
