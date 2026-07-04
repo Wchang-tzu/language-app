@@ -1366,7 +1366,11 @@ function renderPage5ImportCenter() {
                 <button id="syncPushBtn" style="flex:1; background:#667eea; color:#fff; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">⬆️ 上傳到雲端</button>
                 <button id="syncPullBtn" style="flex:1; background:#48bb78; color:#fff; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">⬇️ 從雲端下載</button>
             </div>
-            <div id="syncStatusText" style="margin-top:10px; font-size:12px; color:#a0aec0; text-align:center;"></div>
+            <div style="margin-top:10px; font-size:12px; color:#a0aec0; text-align:center; line-height:1.6;">
+                本機上次上傳：${formatSyncTime(getSyncLocalMeta().lastUploadAt)}<br>
+                本機上次下載：${formatSyncTime(getSyncLocalMeta().lastDownloadAt)}
+            </div>
+            <div id="syncStatusText" style="margin-top:6px; font-size:12px; color:#a0aec0; text-align:center;"></div>
         </div>
 
         <div class="import-card" style="background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05); margin-bottom:25px; border: 1px solid #e2e8f0;">
@@ -1800,6 +1804,22 @@ function saveSyncCode(code) {
     localStorage.setItem("multiLangSyncCode_v1", syncCode);
 }
 
+// 📅 記錄「本機」上次上傳/下載雲端同步的時間，讓使用者下載前可以先比較一下新舊
+function getSyncLocalMeta() {
+    return JSON.parse(localStorage.getItem("multiLangSyncLocalMeta_v1")) || {};
+}
+
+function setSyncLocalMeta(patch) {
+    const meta = getSyncLocalMeta();
+    Object.assign(meta, patch);
+    localStorage.setItem("multiLangSyncLocalMeta_v1", JSON.stringify(meta));
+}
+
+function formatSyncTime(timestamp) {
+    if (!timestamp) return "尚無紀錄";
+    return new Date(timestamp).toLocaleString();
+}
+
 function getFullSyncPayload() {
     return {
         userDatabase,
@@ -1847,6 +1867,7 @@ async function pushToCloud(showAlert = true) {
         const result = await res.json();
         if (result.success) {
             if (showAlert) alert("☁️ 已成功上傳到雲端！");
+            setSyncLocalMeta({ lastUploadAt: Date.now() });
             updateSyncStatusUI("✅ 已上傳・" + new Date().toLocaleString());
         } else {
             updateSyncStatusUI("❌ 上傳失敗");
@@ -1869,8 +1890,14 @@ async function pullFromCloud() {
             alert("雲端目前還沒有這個同步碼的資料，請先在另一台裝置上傳一次！");
             return;
         }
-        if (confirm("確定要用雲端的資料覆蓋這台裝置目前的資料嗎？（本機目前的資料會被取代）")) {
+
+        const localMeta = getSyncLocalMeta();
+        const cloudTimeStr = formatSyncTime(result.data.updatedAt);
+        const confirmMsg = `☁️ 雲端資料最後更新時間：${cloudTimeStr}\n📱 本機上次上傳：${formatSyncTime(localMeta.lastUploadAt)}\n📱 本機上次下載：${formatSyncTime(localMeta.lastDownloadAt)}\n\n確定要用雲端的資料覆蓋這台裝置目前的資料嗎？（本機目前的資料會被取代）`;
+
+        if (confirm(confirmMsg)) {
             applySyncPayload(result.data);
+            setSyncLocalMeta({ lastDownloadAt: Date.now() });
             updateSyncStatusUI("✅ 已下載・" + new Date().toLocaleString());
             alert("✅ 已從雲端下載並套用資料！");
 
