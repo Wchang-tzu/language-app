@@ -1298,10 +1298,10 @@ function renderMyLinks() {
     if (!container) return;
     container.innerHTML = "";
 
-    const newsOnly = userLinks.filter(link => link.type === "news");
+    const newsOnly = userLinks.filter(link => link.type === "news" && (!link.lang || link.lang === currentLang));
 
     if (newsOnly.length === 0) {
-        container.innerHTML = "<li style='list-style:none; color:#a0aec0; text-align:center; padding: 15px; font-size:13px;'>還沒有加入任何私房新聞網站，可以到「引進庫」新增，記得類型選「📰 新聞網站」唷！</li>";
+        container.innerHTML = `<li style='list-style:none; color:#a0aec0; text-align:center; padding: 15px; font-size:13px;'>目前 ${getLangMeta(currentLang).name} 還沒有加入任何私房新聞網站，可以到「引進庫」新增，記得類型選「📰 新聞網站」唷！</li>`;
         return;
     }
 
@@ -1344,6 +1344,15 @@ function renderPage5ImportCenter() {
 
     const activeLangName = getLangMeta(currentLang).name;
     const currentLangWords = userDatabase[currentLang] || [];
+    // 依語言分類：只顯示目前選定語言的私房網站（沒有標記語言的舊資料，暫時視為通用，任何語言都會顯示）
+    const visibleLinks = userLinks.filter(link => !link.lang || link.lang === currentLang);
+    // 依語言分類：採集推薦句只顯示符合目前語言的例句
+    const inspirationPool = [
+        { text: 'お勧めは何ですか？', trans: '有什麼推薦的嗎？', lang: 'ja', category: 'restaurant', note: '日語' },
+        { text: '여기요, 물 좀 주세요.', trans: '這裡，請給我水。', lang: 'ko', category: 'restaurant', note: '韓語' },
+        { text: 'Where is the nearest station?', trans: '最近的車站在哪裡？', lang: 'en', category: 'transport', note: '英語' }
+    ];
+    const visibleInspiration = inspirationPool.filter(item => item.lang === currentLang);
 
     page5Container.innerHTML = `
         <h2 style="margin-bottom: 20px; color: #2d3748; text-align: center;">動態引進與管理中心</h2>
@@ -1405,10 +1414,13 @@ function renderPage5ImportCenter() {
         </div>
 
         <div class="import-card" style="background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
-            <h3 style="margin:0 0 15px 0; color:#2c5282; font-size:18px;">🌐 私房學習網站連結管理</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0; color:#2c5282; font-size:18px;">🌐 私房學習網站連結管理 (${activeLangName})</h3>
+                <span style="font-size:12px; background:#ebf8ff; color:#2b6cb0; padding:4px 10px; border-radius:12px; font-weight:bold;">隨切換語系連動變更</span>
+            </div>
             
             <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px; background:#f7fafc; padding:15px; border-radius:8px; border:1px dashed #cbd5e0;">
-                <h4 style="margin:0; color:#4a5568; font-size:13px;">➕ 新增私房網站：</h4>
+                <h4 style="margin:0; color:#4a5568; font-size:13px;">➕ 新增私房網站到 ${activeLangName}：</h4>
                 <input type="text" id="p5LinkTitle" placeholder="資源名稱 (例如: 網路日文辭典)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
                 <input type="text" id="p5LinkUrl" placeholder="網址 (例如: www.jisho.org)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
                 <select id="p5LinkType" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
@@ -1418,9 +1430,11 @@ function renderPage5ImportCenter() {
                 <button id="p5AddLinkBtn" style="background:#28a745; color:#fff; border:none; padding:8px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">儲存並引進網站</button>
             </div>
 
-            <h4 style="margin:0 0 10px 0; color:#4a5568; font-size:14px;">📋 已引進網站 (${userLinks.length})</h4>
+            <h4 style="margin:0 0 10px 0; color:#4a5568; font-size:14px;">📋 已引進網站 (${visibleLinks.length})</h4>
             <div id="linksList" style="display:flex; flex-direction:column; gap:10px;">
-                ${userLinks.map((link, index) => `
+                ${visibleLinks.map((link) => {
+        const index = userLinks.indexOf(link);
+        return `
                     <div style="background:#fff; border:1px solid #edf2f7; border-radius:8px; padding:12px 15px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
                         <a href="${link.url}" target="_blank" rel="noopener noreferrer" style="text-decoration:none; color:#2b6cb0; font-weight:bold; font-size:15px; flex:1; margin-right:10px; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                             ${link.type === "news" ? "📰" : "📚"} ${link.title}
@@ -1429,9 +1443,9 @@ function renderPage5ImportCenter() {
                             <button onclick="editLinkFromPage5(${index})" style="background:#ecc94b; color:#744210; border:none; padding:5px 10px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">修改</button>
                             <button onclick="deleteLinkFromPage5(${index})" style="background:#e53e3e; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">刪除</button>
                         </div>
-                    </div>
-                `).join('')}
-                ${userLinks.length === 0 ? '<p style="text-align:center; color:#a0aec0; padding:10px; font-size:13px; margin:0;">目前沒有自訂任何網站唷！</p>' : ''}
+                    </div>`;
+    }).join('')}
+                ${visibleLinks.length === 0 ? `<p style="text-align:center; color:#a0aec0; padding:10px; font-size:13px; margin:0;">目前 ${activeLangName} 還沒有自訂任何網站唷！</p>` : ''}
             </div>
         </div>
 
@@ -1510,35 +1524,18 @@ function renderPage5ImportCenter() {
         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
 
         <div class="inspiration-section">
-            <h3 style="font-size: 16px; color: #2b6cb0; margin-bottom: 12px;">✨ 採集新句子到隨身包（推薦站）</h3>
+            <h3 style="font-size: 16px; color: #2b6cb0; margin-bottom: 12px;">✨ 採集新句子到隨身包（推薦站・${activeLangName}）</h3>
             <div class="inspiration-list">
+                ${visibleInspiration.map(item => `
                 <div class="inspire-card">
                     <div class="card-info">
-                        <strong class="new-text">お勧めは何ですか？</strong>
-                        <span class="new-trans">（日語）有什麼推薦的嗎？</span>
+                        <strong class="new-text">${item.text}</strong>
+                        <span class="new-trans">（${item.note}）${item.trans}</span>
                     </div>
                     <button class="add-to-pack-btn"
-                        onclick="collectWord('お勧めは何ですか？', '有什麼推薦的嗎？', 'ja', 'restaurant')">➕ 收藏</button>
-                </div>
-
-                <div class="inspire-card">
-                    <div class="card-info">
-                        <strong class="new-text">여기요, 물 좀 주세요.</strong>
-                        <span class="new-trans">（韓語）這裡，請給我水。</span>
-                    </div>
-                    <button class="add-to-pack-btn"
-                        onclick="collectWord('여기요, 물 좀 주세요.', '這裡，請給我水。', 'ko', 'restaurant')">➕ 收藏</button>
-                </div>
-
-                <div class="inspire-card">
-                    <div class="card-info">
-                        <strong class="new-text">Where is the nearest station?</strong>
-                        <span class="new-trans">（英語）最近的車站在哪裡？</span>
-                    </div>
-                    <button class="add-to-pack-btn"
-                        onclick="collectWord('Where is the nearest station?', '最近的車站在哪裡？', 'en', 'transport')">➕
-                        收藏</button>
-                </div>
+                        onclick="collectWord('${item.text.replace(/'/g, "\\'")}', '${item.trans.replace(/'/g, "\\'")}', '${item.lang}', '${item.category}')">➕ 收藏</button>
+                </div>`).join('')}
+                ${visibleInspiration.length === 0 ? `<p style="text-align:center; color:#a0aec0; padding:10px; font-size:13px; margin:0;">目前推薦站還沒有 ${activeLangName} 的例句，之後會陸續新增！</p>` : ''}
             </div>
         </div>
     `;
@@ -1652,7 +1649,7 @@ function addLinkFromPage5() {
     if (!title || !url) { alert("請填寫完整的網站標題與連結網址！"); return; }
     if (!url.startsWith("http://") && !url.startsWith("https://")) { url = "https://" + url; }
 
-    userLinks.push({ title, url, type });
+    userLinks.push({ title, url, type, lang: currentLang });
     saveLinksToStorage();
     renderPage5ImportCenter();
     renderMyLinks();
@@ -1674,7 +1671,7 @@ window.editLinkFromPage5 = function (index) {
     if (typeInput === null) return;
     const newType = typeInput.trim() === "1" ? "news" : "other";
 
-    userLinks[index] = { title: newTitle.trim(), url: newUrl.trim(), type: newType };
+    userLinks[index] = { title: newTitle.trim(), url: newUrl.trim(), type: newType, lang: currentLink.lang || currentLang };
     saveLinksToStorage();
     renderPage5ImportCenter();
     renderMyLinks();
