@@ -1345,24 +1345,44 @@ function renderPage6LearningSites() {
     if (!container) return;
 
     const activeLangName = getLangMeta(currentLang).name;
-    // 沒有標記語言的舊資料，暫時視為通用，任何語言都會顯示（跟引進庫的規則一致）
+    // 沒有標記語言的舊資料，暫時視為通用，任何語言都會顯示（跟舊版引進庫的規則一致）
     const sites = userLinks.filter(link => !link.lang || link.lang === currentLang);
 
     container.innerHTML = `
-        <h3 class="page-title">🔗 ${activeLangName}的學習網站</h3>
-        <button onclick="navigateToPage(5)" style="width:100%; padding:10px; background:#2b6cb0; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px; margin-bottom:16px;">➕ 前往引進庫新增網站</button>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-            ${sites.map(link => `
-                <a href="${link.url}" target="_blank" rel="noopener noreferrer" style="display:block; background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; text-decoration:none; color:#2d3748; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
-                    <div style="font-size:16px; font-weight:bold; color:#2b6cb0; margin-bottom:4px; word-break:break-all;">
+        <h3 class="page-title">🔗 學習網站 (${activeLangName})</h3>
+
+        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px; background:#f7fafc; padding:15px; border-radius:8px; border:1px dashed #cbd5e0;">
+            <h4 style="margin:0; color:#4a5568; font-size:13px;">➕ 新增網站到 ${activeLangName}：</h4>
+            <input type="text" id="p5LinkTitle" placeholder="資源名稱 (例如: 網路日文辭典)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+            <input type="text" id="p5LinkUrl" placeholder="網址 (例如: www.jisho.org)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+            <select id="p5LinkType" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+                <option value="news">📰 新聞網站</option>
+                <option value="other">📚 其他學習網站</option>
+            </select>
+            <button id="p5AddLinkBtn" style="background:#28a745; color:#fff; border:none; padding:8px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">儲存並引進網站</button>
+        </div>
+
+        <h4 style="margin:0 0 10px 0; color:#4a5568; font-size:14px;">📋 已引進網站 (${sites.length})</h4>
+        <div id="linksList" style="display:flex; flex-direction:column; gap:10px;">
+            ${sites.map((link) => {
+        const index = userLinks.indexOf(link);
+        return `
+                <div style="background:#fff; border:1px solid #edf2f7; border-radius:8px; padding:12px 15px; display:flex; justify-content:space-between; align-items:center; gap:10px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                    <a href="${link.url}" target="_blank" rel="noopener noreferrer" style="text-decoration:none; color:#2b6cb0; font-weight:bold; font-size:15px; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                         ${link.type === "news" ? "📰" : "📚"} ${link.title}
+                    </a>
+                    <div style="display:flex; gap:6px; flex-shrink:0;">
+                        <button onclick="editLinkFromPage5(${index})" style="background:#ecc94b; color:#744210; border:none; padding:5px 10px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">修改</button>
+                        <button onclick="deleteLinkFromPage5(${index})" style="background:#e53e3e; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">刪除</button>
                     </div>
-                    <div style="font-size:12px; color:#718096; word-break:break-all;">${link.url}</div>
-                </a>
-            `).join('')}
-            ${sites.length === 0 ? `<p style="text-align:center; color:#a0aec0; padding:30px 15px; font-size:14px; margin:0;">目前還沒有 ${activeLangName} 的學習網站，點上面按鈕去引進庫新增一個吧！</p>` : ''}
+                </div>`;
+    }).join('')}
+            ${sites.length === 0 ? `<p style="text-align:center; color:#a0aec0; padding:15px; font-size:13px; margin:0;">目前 ${activeLangName} 還沒有自訂任何網站，快在上面新增一個吧！</p>` : ''}
         </div>
     `;
+
+    const addLinkBtnEl = document.getElementById("p5AddLinkBtn");
+    if (addLinkBtnEl) addLinkBtnEl.addEventListener("click", addLinkFromPage5);
 }
 
 // ==========================================
@@ -1374,8 +1394,6 @@ function renderPage5ImportCenter() {
 
     const activeLangName = getLangMeta(currentLang).name;
     const currentLangWords = userDatabase[currentLang] || [];
-    // 依語言分類：只顯示目前選定語言的私房網站（沒有標記語言的舊資料，暫時視為通用，任何語言都會顯示）
-    const visibleLinks = userLinks.filter(link => !link.lang || link.lang === currentLang);
     // 依語言分類：採集推薦句只顯示符合目前語言的例句
     const inspirationPool = [
         { text: 'お勧めは何ですか？', trans: '有什麼推薦的嗎？', lang: 'ja', category: 'restaurant', note: '日語' },
@@ -1440,42 +1458,6 @@ function renderPage5ImportCenter() {
                     </div>`;
     }).join('')}
                 ${currentLangWords.length === 0 ? '<p style="text-align:center; color:#a0aec0; padding:15px; font-size:13px; margin:0;">目前此語系沒有任何自訂字句唷！</p>' : ''}
-            </div>
-        </div>
-
-        <div class="import-card" style="background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="margin:0; color:#2c5282; font-size:18px;">🌐 私房學習網站連結管理 (${activeLangName})</h3>
-                <span style="font-size:12px; background:#ebf8ff; color:#2b6cb0; padding:4px 10px; border-radius:12px; font-weight:bold;">隨切換語系連動變更</span>
-            </div>
-            
-            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px; background:#f7fafc; padding:15px; border-radius:8px; border:1px dashed #cbd5e0;">
-                <h4 style="margin:0; color:#4a5568; font-size:13px;">➕ 新增私房網站到 ${activeLangName}：</h4>
-                <input type="text" id="p5LinkTitle" placeholder="資源名稱 (例如: 網路日文辭典)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
-                <input type="text" id="p5LinkUrl" placeholder="網址 (例如: www.jisho.org)" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
-                <select id="p5LinkType" style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
-                    <option value="news">📰 新聞網站（會同步顯示在「看板」）</option>
-                    <option value="other">📚 其他學習網站（只顯示在引進庫）</option>
-                </select>
-                <button id="p5AddLinkBtn" style="background:#28a745; color:#fff; border:none; padding:8px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">儲存並引進網站</button>
-            </div>
-
-            <h4 style="margin:0 0 10px 0; color:#4a5568; font-size:14px;">📋 已引進網站 (${visibleLinks.length})</h4>
-            <div id="linksList" style="display:flex; flex-direction:column; gap:10px;">
-                ${visibleLinks.map((link) => {
-        const index = userLinks.indexOf(link);
-        return `
-                    <div style="background:#fff; border:1px solid #edf2f7; border-radius:8px; padding:12px 15px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
-                        <a href="${link.url}" target="_blank" rel="noopener noreferrer" style="text-decoration:none; color:#2b6cb0; font-weight:bold; font-size:15px; flex:1; margin-right:10px; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                            ${link.type === "news" ? "📰" : "📚"} ${link.title}
-                        </a>
-                        <div style="display:flex; gap:6px; flex-shrink:0;">
-                            <button onclick="editLinkFromPage5(${index})" style="background:#ecc94b; color:#744210; border:none; padding:5px 10px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">修改</button>
-                            <button onclick="deleteLinkFromPage5(${index})" style="background:#e53e3e; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold;">刪除</button>
-                        </div>
-                    </div>`;
-    }).join('')}
-                ${visibleLinks.length === 0 ? `<p style="text-align:center; color:#a0aec0; padding:10px; font-size:13px; margin:0;">目前 ${activeLangName} 還沒有自訂任何網站唷！</p>` : ''}
             </div>
         </div>
 
@@ -1570,7 +1552,6 @@ function renderPage5ImportCenter() {
         </div>
     `;
 
-    document.getElementById("p5AddLinkBtn").addEventListener("click", addLinkFromPage5);
     document.getElementById("p5AddSpeakBtn").addEventListener("click", addSpeakingArticleFromPage5);
     document.getElementById("p5AddVideoWritingBtn").addEventListener("click", addVideoWritingItemFromPage5);
 
@@ -1681,7 +1662,7 @@ function addLinkFromPage5() {
 
     userLinks.push({ title, url, type, lang: currentLang });
     saveLinksToStorage();
-    renderPage5ImportCenter();
+    renderPage6LearningSites();
     renderMyLinks();
 }
 
@@ -1697,13 +1678,13 @@ window.editLinkFromPage5 = function (index) {
     if (!newUrl.trim().startsWith("http://") && !newUrl.trim().startsWith("https://")) { newUrl = "https://" + newUrl.trim(); }
 
     const currentType = currentLink.type === "news" ? "1" : "2";
-    const typeInput = prompt("3/3 這是哪種網站？請輸入 1 或 2：\n1 = 📰 新聞網站（會同步顯示在看板）\n2 = 📚 其他學習網站（只顯示在引進庫）", currentType);
+    const typeInput = prompt("3/3 這是哪種網站？請輸入 1 或 2：\n1 = 📰 新聞網站（會同步顯示在看板）\n2 = 📚 其他學習網站（只顯示在學習網站頁）", currentType);
     if (typeInput === null) return;
     const newType = typeInput.trim() === "1" ? "news" : "other";
 
     userLinks[index] = { title: newTitle.trim(), url: newUrl.trim(), type: newType, lang: currentLink.lang || currentLang };
     saveLinksToStorage();
-    renderPage5ImportCenter();
+    renderPage6LearningSites();
     renderMyLinks();
 }
 
@@ -1711,7 +1692,7 @@ window.deleteLinkFromPage5 = function (index) {
     if (confirm(`確認除去私房網站：「${userLinks[index].title}」？`)) {
         userLinks.splice(index, 1);
         saveLinksToStorage();
-        renderPage5ImportCenter();
+        renderPage6LearningSites();
         renderMyLinks();
     }
 }
