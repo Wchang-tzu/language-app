@@ -1386,6 +1386,94 @@ function renderPage6LearningSites() {
 }
 
 // ==========================================
+// 🔍 全域搜尋：跨所有語言搜尋字句庫、短文/對話、影音寫作題目
+// ==========================================
+function performGlobalSearch(query) {
+    const resultsContainer = document.getElementById("globalSearchResults");
+    if (!resultsContainer) return;
+
+    const q = query.trim().toLowerCase();
+    if (!q) { resultsContainer.innerHTML = ""; return; }
+
+    const results = [];
+    getAllLanguages().forEach(langMeta => {
+        const lang = langMeta.code;
+
+        (userDatabase[lang] || []).forEach((item, index) => {
+            const haystack = `${item.text || ''} ${item.trans || ''} ${item.example || ''} ${item.exTrans || ''}`.toLowerCase();
+            if (haystack.includes(q)) results.push({ type: "word", lang, index, item });
+        });
+
+        (speakingArticles[lang] || []).forEach((item, index) => {
+            const haystack = `${item.title || ''} ${item.text || ''}`.toLowerCase();
+            if (haystack.includes(q)) results.push({ type: "speaking", lang, index, item });
+        });
+
+        (videoWritingItems[lang] || []).forEach((item, index) => {
+            const haystack = `${item.prompt || ''} ${item.text || ''} ${item.trans || ''}`.toLowerCase();
+            if (haystack.includes(q)) results.push({ type: "video", lang, index, item });
+        });
+    });
+
+    if (results.length === 0) {
+        resultsContainer.innerHTML = `<p style="text-align:center; color:#a0aec0; padding:15px; font-size:13px; margin:0; background:#f7fafc; border-radius:10px;">找不到符合「${query.trim()}」的內容</p>`;
+        return;
+    }
+
+    const shown = results.slice(0, 50);
+    resultsContainer.innerHTML = `
+        <div style="max-height:340px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; border:1px solid #e2e8f0; border-radius:10px; padding:10px; background:#f7fafc;">
+            ${shown.map(r => {
+        const langMeta = getLangMeta(r.lang);
+        const typeIcon = r.type === "word" ? "📇" : r.type === "speaking" ? "📖" : "🎬";
+        const mainText = r.type === "word" ? r.item.text : r.type === "speaking" ? r.item.title : r.item.prompt;
+        const subText = r.type === "word" ? r.item.trans : r.type === "speaking" ? r.item.text : (r.item.text || r.item.trans || "");
+        return `
+                <div style="background:#fff; border:1px solid #edf2f7; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                    <div style="min-width:0; flex:1;">
+                        <div style="font-size:12px; color:#718096; margin-bottom:2px;">${langMeta.icon} ${langMeta.name} · ${typeIcon}</div>
+                        <div style="font-size:14px; font-weight:bold; color:#2d3748; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${mainText}</div>
+                        <div style="font-size:12px; color:#718096; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${subText}</div>
+                    </div>
+                    <button onclick='jumpToSearchResult(${JSON.stringify(r.type)}, ${JSON.stringify(r.lang)}, ${r.index})' style="background:#2b6cb0; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold; flex-shrink:0;">前往</button>
+                </div>`;
+    }).join('')}
+            ${results.length > 50 ? `<p style="text-align:center; color:#a0aec0; font-size:12px; margin:4px 0 0 0;">結果太多，僅顯示前 50 筆，請輸入更精確的關鍵字</p>` : ''}
+        </div>
+    `;
+}
+
+// 點擊搜尋結果的「前往」：切換到對應語言/模式，直接跳到第三頁練習
+window.jumpToSearchResult = function (type, lang, index) {
+    currentLang = lang;
+    renderLangGrid();
+
+    if (type === "word") {
+        const item = (userDatabase[lang] || [])[index];
+        currentCat = item ? item.category : "all";
+        currentMode = "dialogue";
+    } else if (type === "speaking") {
+        currentMode = "speaking";
+        speakingIndex = index;
+    } else if (type === "video") {
+        currentMode = "writing";
+        writingSubMode = "video";
+        videoWritingIndex = index;
+    }
+
+    modeButtons.forEach(b => {
+        b.classList.toggle("active", b.getAttribute("data-mode") === currentMode);
+    });
+
+    navigateToPage(3);
+
+    const searchInputEl = document.getElementById("globalSearchInput");
+    const searchResultsEl = document.getElementById("globalSearchResults");
+    if (searchInputEl) searchInputEl.value = "";
+    if (searchResultsEl) searchResultsEl.innerHTML = "";
+};
+
+// ==========================================
 // 6. 第五頁：🛠️ 引進與全功能管理中心 (CRUD)
 // ==========================================
 function renderPage5ImportCenter() {
@@ -1413,7 +1501,10 @@ function renderPage5ImportCenter() {
             <input type="text" id="syncCodeInput" placeholder="輸入你的專屬同步碼" value="${syncCode.replace(/"/g, '&quot;')}" style="padding:10px 12px; border:1px solid #c3bffd; border-radius:6px; font-size:14px; width:100%; box-sizing:border-box; margin-bottom:10px;">
             <div style="display:flex; gap:10px;">
                 <button id="syncPushBtn" style="flex:1; background:#667eea; color:#fff; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">⬆️ 上傳到雲端</button>
-                <button id="syncPullBtn" style="flex:1; background:#48bb78; color:#fff; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">⬇️ 從雲端下載</button>
+                <button id="syncPullBtn" style="flex:1; background:#48bb78; color:#fff; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">⬇️ 合併雲端資料</button>
+            </div>
+            <div style="text-align:center; margin-top:8px;">
+                <button id="syncPullOverwriteBtn" style="background:none; border:none; color:#e53e3e; font-size:12px; text-decoration:underline; cursor:pointer; padding:4px;">改成用雲端資料整個覆蓋本機（危險，請先備份）</button>
             </div>
             <div style="margin-top:10px; font-size:12px; color:#a0aec0; text-align:center; line-height:1.6;">
                 本機上次上傳：${formatSyncTime(getSyncLocalMeta().lastUploadAt)}<br>
@@ -1570,6 +1661,7 @@ function renderPage5ImportCenter() {
     const syncCodeInputEl = document.getElementById("syncCodeInput");
     const syncPushBtnEl = document.getElementById("syncPushBtn");
     const syncPullBtnEl = document.getElementById("syncPullBtn");
+    const syncPullOverwriteBtnEl = document.getElementById("syncPullOverwriteBtn");
 
     if (syncCodeInputEl) {
         syncCodeInputEl.addEventListener("change", (e) => saveSyncCode(e.target.value));
@@ -1583,7 +1675,13 @@ function renderPage5ImportCenter() {
     if (syncPullBtnEl) {
         syncPullBtnEl.addEventListener("click", () => {
             saveSyncCode(document.getElementById("syncCodeInput").value);
-            pullFromCloud();
+            pullFromCloud(false);
+        });
+    }
+    if (syncPullOverwriteBtnEl) {
+        syncPullOverwriteBtnEl.addEventListener("click", () => {
+            saveSyncCode(document.getElementById("syncCodeInput").value);
+            pullFromCloud(true);
         });
     }
 }
@@ -1920,6 +2018,98 @@ function applySyncPayload(payload) {
     renderLangGrid();
 }
 
+// ==========================================
+// 🔀 合併同步：跟「整個覆蓋」不同，這裡只會「新增」雲端有、本機沒有的內容，
+// 不會刪除或蓋掉本機已經存在的資料，兩台裝置各自新增過的東西都能保留下來。
+// ==========================================
+
+// 通用陣列合併：依 keyFn 算出的識別值去重，本機已存在的保留原樣，雲端獨有的才加進來
+function mergeArrayByKey(localArr, cloudArr, keyFn) {
+    const safeLocal = Array.isArray(localArr) ? localArr : [];
+    const safeCloud = Array.isArray(cloudArr) ? cloudArr : [];
+    const result = [...safeLocal];
+    const existingKeys = new Set(safeLocal.map(keyFn));
+    safeCloud.forEach(item => {
+        const k = keyFn(item);
+        if (!existingKeys.has(k)) {
+            result.push(item);
+            existingKeys.add(k);
+        }
+    });
+    return result;
+}
+
+// 依語言分類的字典（例如 userDatabase[lang] = [...]）逐一語言合併陣列
+function mergeLangDictByKey(localDict, cloudDict, keyFn) {
+    const safeLocal = localDict || {};
+    const safeCloud = cloudDict || {};
+    const result = { ...safeLocal };
+    const allLangs = new Set([...Object.keys(safeLocal), ...Object.keys(safeCloud)]);
+    allLangs.forEach(lang => {
+        result[lang] = mergeArrayByKey(safeLocal[lang] || [], safeCloud[lang] || [], keyFn);
+    });
+    return result;
+}
+
+// writingParagraphs 結構是 { lang: { 單字: {text, savedAt} } }，用「哪個時間比較新」來合併
+function mergeWritingParagraphs(localDict, cloudDict) {
+    const safeLocal = localDict || {};
+    const safeCloud = cloudDict || {};
+    const result = {};
+    const allLangs = new Set([...Object.keys(safeLocal), ...Object.keys(safeCloud)]);
+    allLangs.forEach(lang => {
+        const localWords = safeLocal[lang] || {};
+        const cloudWords = safeCloud[lang] || {};
+        const merged = { ...localWords };
+        Object.keys(cloudWords).forEach(word => {
+            const cloudEntry = cloudWords[word];
+            const localEntry = merged[word];
+            if (!localEntry || (cloudEntry.savedAt || 0) > (localEntry.savedAt || 0)) {
+                merged[word] = cloudEntry;
+            }
+        });
+        result[lang] = merged;
+    });
+    return result;
+}
+
+function mergeSyncPayload(payload) {
+    if (payload.userDatabase) {
+        userDatabase = mergeLangDictByKey(userDatabase, payload.userDatabase,
+            item => `${(item.text || '').trim().toLowerCase()}|${item.category || ''}`);
+    }
+    if (payload.userLinks) {
+        userLinks = mergeArrayByKey(userLinks, payload.userLinks,
+            item => (item.url || '').trim().toLowerCase());
+    }
+    if (payload.categories) {
+        categories = mergeArrayByKey(categories, payload.categories, item => item.id);
+    }
+    if (payload.customLanguages) {
+        customLanguages = mergeArrayByKey(customLanguages, payload.customLanguages, item => item.code);
+    }
+    if (payload.speakingArticles) {
+        speakingArticles = mergeLangDictByKey(speakingArticles, payload.speakingArticles,
+            item => item.id || (item.title || '').trim().toLowerCase());
+    }
+    if (payload.videoWritingItems) {
+        videoWritingItems = mergeLangDictByKey(videoWritingItems, payload.videoWritingItems,
+            item => item.id || (item.prompt || '').trim().toLowerCase());
+    }
+    if (payload.writingParagraphs) {
+        writingParagraphs = mergeWritingParagraphs(writingParagraphs, payload.writingParagraphs);
+    }
+
+    saveToStorage();
+    saveLinksToStorage();
+    saveCategoriesToStorage();
+    saveCustomLanguages();
+    saveSpeakingArticlesToStorage();
+    saveWritingParagraphsToStorage();
+    saveVideoWritingItemsToStorage();
+    renderLangGrid();
+}
+
 function updateSyncStatusUI(text) {
     const statusEl = document.getElementById("syncStatusText");
     if (statusEl) statusEl.innerText = text;
@@ -1949,7 +2139,7 @@ async function pushToCloud(showAlert = true) {
     }
 }
 
-async function pullFromCloud() {
+async function pullFromCloud(forceOverwrite = false) {
     if (!syncCode) { alert("請先輸入同步碼！"); return; }
     updateSyncStatusUI("⏳ 下載中...");
     try {
@@ -1963,13 +2153,20 @@ async function pullFromCloud() {
 
         const localMeta = getSyncLocalMeta();
         const cloudTimeStr = formatSyncTime(result.data.updatedAt);
-        const confirmMsg = `☁️ 雲端資料最後更新時間：${cloudTimeStr}\n📱 本機上次上傳：${formatSyncTime(localMeta.lastUploadAt)}\n📱 本機上次下載：${formatSyncTime(localMeta.lastDownloadAt)}\n\n確定要用雲端的資料覆蓋這台裝置目前的資料嗎？（本機目前的資料會被取代）`;
+
+        const confirmMsg = forceOverwrite
+            ? `⚠️ 這會用雲端資料「整個覆蓋」這台裝置目前的資料，本機還沒同步過的內容會消失！\n☁️ 雲端資料最後更新時間：${cloudTimeStr}\n📱 本機上次上傳：${formatSyncTime(localMeta.lastUploadAt)}\n📱 本機上次下載：${formatSyncTime(localMeta.lastDownloadAt)}\n\n確定要整個覆蓋嗎？（無法復原，建議先「📤 匯出全部資料」備份一份）`
+            : `☁️ 雲端資料最後更新時間：${cloudTimeStr}\n📱 本機上次上傳：${formatSyncTime(localMeta.lastUploadAt)}\n📱 本機上次下載：${formatSyncTime(localMeta.lastDownloadAt)}\n\n即將把雲端資料「合併」進本機：雙方各自新增過的內容都會保留，不會刪除本機已經有的東西。確定要繼續嗎？`;
 
         if (confirm(confirmMsg)) {
-            applySyncPayload(result.data);
+            if (forceOverwrite) {
+                applySyncPayload(result.data);
+            } else {
+                mergeSyncPayload(result.data);
+            }
             setSyncLocalMeta({ lastDownloadAt: Date.now() });
             updateSyncStatusUI("✅ 已下載・" + new Date().toLocaleString());
-            alert("✅ 已從雲端下載並套用資料！");
+            alert(forceOverwrite ? "✅ 已用雲端資料覆蓋本機！" : "✅ 已合併雲端資料！");
 
             const activePage = document.querySelector('.app-page.active');
             if (activePage && activePage.id === "page5") renderPage5ImportCenter();
@@ -2064,6 +2261,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 🌐 語系選單改為動態渲染（含使用者自訂新增的語言）
     renderLangGrid();
+
+    // 🔍 全域搜尋輸入框綁定（輸入時即時搜尋）
+    const globalSearchInputEl = document.getElementById("globalSearchInput");
+    if (globalSearchInputEl) {
+        globalSearchInputEl.addEventListener("input", (e) => performGlobalSearch(e.target.value));
+    }
 
     // 特訓模式切換（第三頁使用）
     // ==========================================
