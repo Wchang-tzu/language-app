@@ -123,6 +123,7 @@ async function loadDatabase() {
         const activePage = document.querySelector('.app-page.active');
         if (activePage && activePage.id === "page5") renderPage5ImportCenter();
         else if (activePage && activePage.id === "page2") renderCategoryPage();
+        else if (activePage && activePage.id === "page6") renderPage6LearningSites();
         else updateUI();
     }
 }
@@ -349,6 +350,7 @@ window.selectLanguage = function (code) {
     const activePage = document.querySelector('.app-page.active');
     if (activePage && activePage.id === "page5") renderPage5ImportCenter();
     else if (activePage && activePage.id === "page2") renderCategoryPage();
+    else if (activePage && activePage.id === "page6") renderPage6LearningSites();
     else updateUI();
 };
 
@@ -1336,6 +1338,34 @@ function renderMyLinks() {
 }
 
 // ==========================================
+// 🔗 第六頁：學習網站（依目前選定的語言分類顯示已引進的網站）
+// ==========================================
+function renderPage6LearningSites() {
+    const container = document.getElementById("page6");
+    if (!container) return;
+
+    const activeLangName = getLangMeta(currentLang).name;
+    // 沒有標記語言的舊資料，暫時視為通用，任何語言都會顯示（跟引進庫的規則一致）
+    const sites = userLinks.filter(link => !link.lang || link.lang === currentLang);
+
+    container.innerHTML = `
+        <h3 class="page-title">🔗 ${activeLangName}的學習網站</h3>
+        <button onclick="navigateToPage(5)" style="width:100%; padding:10px; background:#2b6cb0; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px; margin-bottom:16px;">➕ 前往引進庫新增網站</button>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            ${sites.map(link => `
+                <a href="${link.url}" target="_blank" rel="noopener noreferrer" style="display:block; background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; text-decoration:none; color:#2d3748; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="font-size:16px; font-weight:bold; color:#2b6cb0; margin-bottom:4px; word-break:break-all;">
+                        ${link.type === "news" ? "📰" : "📚"} ${link.title}
+                    </div>
+                    <div style="font-size:12px; color:#718096; word-break:break-all;">${link.url}</div>
+                </a>
+            `).join('')}
+            ${sites.length === 0 ? `<p style="text-align:center; color:#a0aec0; padding:30px 15px; font-size:14px; margin:0;">目前還沒有 ${activeLangName} 的學習網站，點上面按鈕去引進庫新增一個吧！</p>` : ''}
+        </div>
+    `;
+}
+
+// ==========================================
 // 6. 第五頁：🛠️ 引進與全功能管理中心 (CRUD)
 // ==========================================
 function renderPage5ImportCenter() {
@@ -1963,6 +1993,7 @@ async function pullFromCloud() {
             const activePage = document.querySelector('.app-page.active');
             if (activePage && activePage.id === "page5") renderPage5ImportCenter();
             else if (activePage && activePage.id === "page2") renderCategoryPage();
+            else if (activePage && activePage.id === "page6") renderPage6LearningSites();
             else updateUI();
         } else {
             updateSyncStatusUI("");
@@ -2033,6 +2064,8 @@ function navigateToPage(pageNumber) {
         updateUI();           // 第三頁：專職 5 大特訓練習（依據第2頁選定的情境）
     } else if (pageNumber === 5) {
         renderPage5ImportCenter(); // 第五頁：專職渲染增刪改管理中心
+    } else if (pageNumber === 6) {
+        renderPage6LearningSites(); // 第六頁：依語言分類顯示已引進的學習網站
     } else {
         updateUI();           // 第一、四頁：交由預設引擎渲染
     }
